@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36623.8 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LabyrinthGame", "LabyrinthGame\LabyrinthGame.csproj", "{A1BA32AC-17C3-4CA3-9592-6D8F86E0CA60}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A1BA32AC-17C3-4CA3-9592-6D8F86E0CA60}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1BA32AC-17C3-4CA3-9592-6D8F86E0CA60}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1BA32AC-17C3-4CA3-9592-6D8F86E0CA60}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1BA32AC-17C3-4CA3-9592-6D8F86E0CA60}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BD8EB55D-6375-49C2-AF88-6F8FB32547FD}
+	EndGlobalSection
+EndGlobal
