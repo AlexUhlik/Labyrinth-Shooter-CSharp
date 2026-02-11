@@ -8,5 +8,6 @@ namespace LabyrinthGame
 {
     internal class Test
     {
+		
     }
 }
