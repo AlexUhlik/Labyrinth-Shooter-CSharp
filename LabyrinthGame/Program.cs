@@ -17,6 +17,7 @@ namespace LabyrinthGame
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new Form1());
+            //Console.Write("test");
         }
     }
 }
