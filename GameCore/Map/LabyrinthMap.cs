@@ -45,5 +45,12 @@ namespace GameCore.Map
             int y = (int)(position.Y / TileSize);
             return (x, y);
         }
+
+        public Point ConvertToWorldCoordinates(int gridX, int gridY)
+        {
+            float worldX = gridX * TileSize + (TileSize / 2f);
+            float worldY = gridY * TileSize + (TileSize / 2f);
+            return new Point(worldX, worldY);
+        }
     }
 }

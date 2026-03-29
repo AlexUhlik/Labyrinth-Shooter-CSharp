@@ -1,132 +1,142 @@
-﻿//// Presentation/Graphics/OpenGLRenderer.cs
+﻿using OpenTK;
+using OpenTK.Graphics;
+using OpenTK.Graphics.OpenGL4;
+//using OpenTK.Mathematics; // Обязательно для Matrix4 и Color4
+using System;
+using System.IO;
 
-//using GameCore.Map; // Нам нужен LabyrinthMap
-//using OpenTK.Graphics.OpenGL;
-//using System;
-//using System.Drawing;
-//using System.Drawing.Imaging;
+namespace Application.Graphics
+{
+    public class OpenGlRender : IDisposable
+    {
+        private int _vertexBufferObject;
+        private int _vertexArrayObject;
+        private int _shaderProgram;
+        private Matrix4 _projection;
 
-//namespace LabyrinthGame.Graphics
-//{
-//    public class OpenGLRenderer
-//    {
-//        // "ID" текстур, которые мы загрузим в память видеокарты
-//        private int wallTextureId;
-//        private int floorTextureId;
+        public OpenGlRender(string vertPath, string fragPath)
+        {
+            // 1. Данные для одного квадрата (от -0.5f до 0.5f)
+            float[] vertices = {
+                -0.5f, -0.5f,
+                 0.5f, -0.5f,
+                 0.5f,  0.5f,
+                -0.5f,  0.5f
+            };
 
-//        /// <summary>
-//        /// Этот метод вызывается один раз при загрузке GLControl.
-//        /// Здесь мы загружаем текстуры и настраиваем базовые параметры.
-//        /// </summary>
-//        public void Load()
-//        {
-//            // Загружаем наши текстуры из файлов.
-//            // Убедитесь, что у вас есть файлы wall.png и floor.png в папке с игрой.
-//            wallTextureId = LoadTexture("Textures/wall.png");
-//            floorTextureId = LoadTexture("Textures/floor.png");
+            // 2. Создаем и заполняем буферы
+            _vertexArrayObject = GL.GenVertexArray();
+            _vertexBufferObject = GL.GenBuffer();
 
-//            // Включаем поддержку 2D-текстур
-//            GL.Enable(EnableCap.Texture2D);
-//        }
+            GL.BindVertexArray(_vertexArrayObject);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBufferObject);
+            GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
 
-//        /// <summary>
-//        /// Главный метод отрисовки лабиринта.
-//        /// </summary>
-//        /// <param name="map">Объект карты, который нужно нарисовать.</param>
-//        public void DrawLabyrinth(LabyrinthMap map)
-//        {
-//            if (map == null) return;
+            // Атрибут позиции: 0 — индекс в шейдере (layout location = 0)
+            GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
+            GL.EnableVertexAttribArray(0);
 
-//            // Пробегаемся по всей сетке карты
-//            for (int x = 0; x < map.Width; x++)
-//            {
-//                for (int y = 0; y < map.Height; y++)
-//                {
-//                    // Рассчитываем мировые координаты для текущей клетки
-//                    float worldX = x * LabyrinthMap.TileSize;
-//                    float worldY = y * LabyrinthMap.TileSize;
+            // 3. Компиляция шейдеров
+            _shaderProgram = CreateProgram(vertPath, fragPath);
+        }
 
-//                    // В зависимости от типа клетки, выбираем нужную текстуру
-//                    if (map.Grid[x, y] == TileType.Wall)
-//                    {
-//                        // Рисуем квадрат (квад) с текстурой стены
-//                        DrawTexturedQuad(worldX, worldY, LabyrinthMap.TileSize, wallTextureId);
-//                    }
-//                    else
-//                    {
-//                        // Рисуем квадрат с текстурой пола
-//                        DrawTexturedQuad(worldX, worldY, LabyrinthMap.TileSize, floorTextureId);
-//                    }
-//                }
-//            }
-//        }
+        public void SetupView(int width, int height, int mapW, int mapH, int tileSize)
+        {
+            GL.Viewport(0, 0, width, height);
+            // Ортографическая проекция: (0,0) в левом верхнем углу
+            //_projection = Matrix4.CreateOrthographicOffCenter(0, mapW * tileSize, mapH * tileSize, 0, -1f, 1f);
 
-//        // --- Вспомогательные методы ---
+            _projection = Matrix4.CreateOrthographicOffCenter(
+                0,
+                mapW * tileSize,
+                mapH * tileSize,
+                0,
+                -1f, 1f);
+        }
 
-//        /// <summary>
-//        /// Рисует один квадрат с наложенной на него текстурой.
-//        /// </summary>
-//        private void DrawTexturedQuad(float x, float y, float size, int textureId)
-//        {
-//            // "Активируем" текстуру, которую хотим использовать
-//            GL.BindTexture(TextureTarget.Texture2D, textureId);
+        public void DrawRect(float x, float y, float size, Color4 color)
+        {
+            GL.UseProgram(_shaderProgram);
 
-//            // Начинаем рисовать примитив "Квадрат"
-//            // (используем устаревший, но очень простой для 2D-игр "immediate mode")
-//            GL.Begin(PrimitiveType.Quads);
+            // Привязываем VAO, чтобы видеокарта знала структуру вершин
+            GL.BindVertexArray(_vertexArrayObject);
 
-//            // Задаем 4 вершины квадрата и для каждой указываем,
-//            // какая точка текстуры ей соответствует.
+            // Передаем цвет
+            int colorLoc = GL.GetUniformLocation(_shaderProgram, "uColor");
+            GL.Uniform4(colorLoc, color);
 
-//            // Верхний левый угол
-//            GL.TexCoord2(0, 0); // (0,0) - верхний левый угол текстуры
-//            GL.Vertex2(x, y);
+            // Передаем проекцию
+            int projLoc = GL.GetUniformLocation(_shaderProgram, "uProjection");
+            GL.UniformMatrix4(projLoc, false, ref _projection);
 
-//            // Верхний правый угол
-//            GL.TexCoord2(1, 0); // (1,0) - верхний правый угол текстуры
-//            GL.Vertex2(x + size, y);
+            // Создаем матрицу модели
+            // x, y — это центр квадрата. 
+            Matrix4 model = Matrix4.CreateScale(size) * Matrix4.CreateTranslation(x, y, 0.0f);
+            int modelLoc = GL.GetUniformLocation(_shaderProgram, "uModel");
+            GL.UniformMatrix4(modelLoc, false, ref model);
 
-//            // Нижний правый угол
-//            GL.TexCoord2(1, 1); // (1,1) - нижний правый угол текстуры
-//            GL.Vertex2(x + size, y + size);
+            // Рисуем
+            GL.DrawArrays(PrimitiveType.TriangleFan, 0, 4);
 
-//            // Нижний левый угол
-//            GL.TexCoord2(0, 1); // (0,1) - нижний левый угол текстуры
-//            GL.Vertex2(x, y + size);
+            // Отвязываем всё (необязательно, но полезно для отладки)
+            GL.BindVertexArray(0);
+            GL.UseProgram(0);
+        }
 
-//            GL.End();
-//        }
+        private int CreateProgram(string vertPath, string fragPath)
+        {
+            int vertexShader = CompileShader(ShaderType.VertexShader, vertPath);
+            int fragmentShader = CompileShader(ShaderType.FragmentShader, fragPath);
 
-//        /// <summary>
-//        /// Загружает изображение из файла и создает для него текстуру OpenGL.
-//        /// </summary>
-//        private int LoadTexture(string filePath)
-//        {
-//            if (!File.Exists(filePath))
-//                throw new FileNotFoundException("Файл текстуры не найден", filePath);
+            int program = GL.CreateProgram();
+            GL.AttachShader(program, vertexShader);
+            GL.AttachShader(program, fragmentShader);
+            GL.LinkProgram(program);
 
-//            // 1. Генерируем "ID" для нашей будущей текстуры
-//            int id = GL.GenTexture();
-//            GL.BindTexture(TextureTarget.Texture2D, id);
+            // Проверка на ошибки линковки
+            GL.GetProgram(program, GetProgramParameterName.LinkStatus, out int success);
+            if (success == 0)
+            {
+                string infoLog = GL.GetProgramInfoLog(program);
+                throw new Exception($"Ошибка линковки программы: {infoLog}");
+            }
 
-//            // 2. Загружаем изображение с помощью стандартной библиотеки C#
-//            Bitmap bmp = new Bitmap(filePath);
-//            BitmapData data = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height),
-//                ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            // После линковки шейдеры можно удалить
+            GL.DetachShader(program, vertexShader);
+            GL.DetachShader(program, fragmentShader);
+            GL.DeleteShader(vertexShader);
+            GL.DeleteShader(fragmentShader);
 
-//            // 3. Отправляем данные изображения в память видеокарты
-//            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, data.Width, data.Height, 0,
-//                OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
+            return program;
+        }
 
-//            bmp.UnlockBits(data);
+        private int CompileShader(ShaderType type, string path)
+        {
+            string source = File.ReadAllText(path);
+            int shader = GL.CreateShader(type);
+            GL.ShaderSource(shader, source);
+            GL.CompileShader(shader);
 
-//            // 4. Настраиваем параметры текстуры
-//            // GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Clamp);
-//            // GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Clamp);
-//            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest); // Четкие пиксели
-//            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest); // при увеличении
+            GL.GetShader(shader, ShaderParameter.CompileStatus, out int success);
+            if (success == 0)
+            {
+                string infoLog = GL.GetShaderInfoLog(shader);
+                throw new Exception($"Ошибка компиляции {type}: {infoLog}");
+            }
+            return shader;
+        }
 
-//            return id;
-//        }
-//    }
-//}
+        public void Clear(Color4 color)
+        {
+            GL.ClearColor(color);
+            GL.Clear(ClearBufferMask.ColorBufferBit);
+        }
+
+        public void Dispose()
+        {
+            GL.DeleteBuffer(_vertexBufferObject);
+            GL.DeleteVertexArray(_vertexArrayObject);
+            GL.DeleteProgram(_shaderProgram);
+        }
+    }
+}

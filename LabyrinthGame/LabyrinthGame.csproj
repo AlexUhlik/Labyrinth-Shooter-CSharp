@@ -85,11 +85,21 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <None Include="Shaders\shader.frag">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Shaders\shader.vert">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Application\Application.csproj">
+      <Project>{81ea3a0f-2d4b-4d9b-963b-fca10e35e38a}</Project>
+      <Name>Application</Name>
+    </ProjectReference>
     <ProjectReference Include="..\GameCore\GameCore.csproj">
       <Project>{04cbe1ab-2b6b-479b-93d7-d68759326ea7}</Project>
       <Name>GameCore</Name>

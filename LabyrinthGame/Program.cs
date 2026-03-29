@@ -1,23 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+using System.Windows.Forms; // 1. Это пространство имен ОБЯЗАТЕЛЬНО
 
 namespace LabyrinthGame
 {
-    internal static class Program
+    static class Program
     {
-        /// <summary>
-        /// Главная точка входа для приложения.
-        /// </summary>
         [STAThread]
         static void Main()
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
-            //Console.Write("test");
+            // 2. Вызываем МЕТОДЫ класса Application через скобки ()
+            System.Windows.Forms.Application.EnableVisualStyles();
+            System.Windows.Forms.Application.SetCompatibleTextRenderingDefault(false);
+
+            // 3. Запускаем само приложение, передавая объект вашей формы
+            System.Windows.Forms.Application.Run(new Form1());
         }
     }
 }
