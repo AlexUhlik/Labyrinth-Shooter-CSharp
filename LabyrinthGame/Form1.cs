@@ -1,28 +1,44 @@
-﻿using Application.Graphics;
-using Application.Services;
+﻿using Application.Services;
+using GameCore.Characters;
 using GameCore.Map;
+using OpenTK;
 using OpenTK.Graphics;
-//using OpenTK.Mathematics;
+using OpenTK.Graphics.OpenGL4;
 using System;
+using System.Diagnostics;
 using System.Windows.Forms;
 
 namespace LabyrinthGame
 {
     public partial class Form1 : Form
     {
-        private OpenGlRender _render;
+        private static readonly Color4 BackgroundColor = new Color4(0.05f, 0.05f, 0.05f, 1.0f);
+        private static readonly Color4 Player1Color = new Color4(0.0f, 0.5f, 1.0f, 1.0f);
+        private static readonly Color4 Player2Color = new Color4(1.0f, 0.2f, 0.2f, 1.0f);
+        private static readonly Color4 Base1Color = new Color4(0.0f, 0.5f, 1.0f, 0.4f);
+        private static readonly Color4 Base2Color = new Color4(1.0f, 0.2f, 0.2f, 0.4f);
+
+        private static readonly Color4 WallColor = new Color4(0.3f, 0.3f, 0.3f, 1.0f);
+        private static readonly Color4 EmptyColor = new Color4(0.1f, 0.1f, 0.1f, 1.0f);
+
+        private GameRenderer _renderer;
         private LabyrinthMap _map;
         private MapGenerator _generator = new MapGenerator();
+        private GameController _game;
         private bool _isLoaded = false;
+        private Keys _lastProcessedKey = Keys.None;
+
 
         public Form1()
         {
             InitializeComponent();
 
-            // Таймер для плавной перерисовки
-            Timer timer = new Timer();
-            timer.Interval = 16;
-            timer.Tick += (s, e) => glControl1.Invalidate();
+            this.KeyPreview = true;
+            this.KeyDown += Form1_KeyDown;
+            this.Resize += Form1_Resize;
+
+            Timer timer = new Timer { Interval = 16 };
+            timer.Tick += (s, e) => { if (_isLoaded) glControl1.Invalidate(); };
             timer.Start();
         }
 
@@ -31,17 +47,16 @@ namespace LabyrinthGame
             try
             {
                 glControl1.MakeCurrent();
+                _renderer = new GameRenderer();
+                _renderer.Init();
 
-                // 1. Генерируем лабиринт (обязательно нечетные!)
                 _map = _generator.GenerateMaze(31, 31);
-
-                // 2. Инициализируем рендер
-                _render = new OpenGlRender("Shaders/shader.vert", "Shaders/shader.frag");
+                _game = new GameController(_map);
 
                 _isLoaded = true;
 
-                // 3. Настраиваем проекцию под размер лабиринта
-                UpdateProjection();
+                CenterSquareControl();
+                UpdateViewport();
             }
             catch (Exception ex)
             {
@@ -49,90 +64,105 @@ namespace LabyrinthGame
             }
         }
 
-        private void UpdateProjection()
-        {
-            if (_isLoaded && _map != null)
-            {
-                glControl1.MakeCurrent();
-                // Передаем реальные размеры: ширина тайлов * размер одного тайла
-                _render.SetupView(glControl1.Width, glControl1.Height, _map.Width(), _map.Height(), LabyrinthMap.TileSize);
-            }
-        }
-
-        //private void glControl1_Paint(object sender, PaintEventArgs e)
-        //{
-        //    if (!_isLoaded || _map == null) return;
-
-        //    glControl1.MakeCurrent();
-
-        //    // Очищаем фон (темно-серый)
-        //    //_render.Clear(new Color4(0.05f, 0.05f, 0.05f, 1.0f));
-
-        //    _render.Clear(new Color4(255f, 0, 0, 1.0f));
-
-        //    // Проходим по сетке лабиринта
-        //    for (int x = 0; x < _map.Width(); x++)
-        //    {
-        //        for (int y = 0; y < _map.Height(); y++)
-        //        {
-        //            // Используем твой метод конвертации в мировые координаты
-        //            var worldPos = _map.ConvertToWorldCoordinates(x, y);
-
-        //            // Выбираем цвет: Стены — светлее, Пол — почти черный
-        //            Color4 tileColor = _map.IsWall(x, y)
-        //                ? new Color4(0.3f, 0.3f, 0.3f, 1.0f)
-        //                : new Color4(0.1f, 0.1f, 0.1f, 1.0f);
-
-        //            // Рисуем тайл. 
-        //            // Вычитаем небольшое значение (например, 20), чтобы была видна сетка между блоками
-        //            _render.DrawRect(worldPos.X, worldPos.Y, LabyrinthMap.TileSize, tileColor);
-        //        }
-        //    }
-
-        //    glControl1.SwapBuffers();
-        //}
-
         private void glControl1_Paint(object sender, PaintEventArgs e)
         {
             if (!_isLoaded || _map == null) return;
 
             glControl1.MakeCurrent();
+            GL.ClearColor(BackgroundColor);
+            GL.Clear(ClearBufferMask.ColorBufferBit);
 
-            // Очищаем фон
-            _render.Clear(new Color4(255f, 0.1f, 0.1f, 1.0f));
+            DrawMap(_map, WallColor, EmptyColor);
 
-            for (int x = 0; x < _map.Width(); x++)
-            {
-                for (int y = 0; y < _map.Height(); y++)
-                {
-                    // Получаем мировые координаты (центр тайла)
-                    var worldPos = _map.ConvertToWorldCoordinates(x, y);
+            DrawBase(1, 1, Base1Color);
+            DrawBase(_map.Width() - 2, _map.Height() - 2, Base2Color);
 
-                    if (_map.IsWall(x, y))
-                    {
-                        // Стены: рисуем без вычитания отступов для монолитности
-                        _render.DrawRect(worldPos.X, worldPos.Y, LabyrinthMap.TileSize, new Color4(0.3f, 0.3f, 0.3f, 1.0f));
-                    }
-                    else
-                    {
-                        // Пол: можно сделать чуть темнее фона или вообще не рисовать
-                        _render.DrawRect(worldPos.X, worldPos.Y, LabyrinthMap.TileSize, new Color4(0.05f, 0.05f, 0.05f, 1.0f));
-                    }
-                }
-            }
-            //_render.DrawRect(0, 0, 50, Color4.White);
+            RenderPlayer(_game.Player1, Player1Color);
+            RenderPlayer(_game.Player2, Player2Color);
 
-            //// Рисуем квадрат в центре лабиринта
-            //float centerX = (_map.Width() * LabyrinthMap.TileSize) / 2f;
-            //float centerY = (_map.Height() * LabyrinthMap.TileSize) / 2f;
-            //_render.DrawRect(centerX, centerY, 60, Color4.Blue);
             glControl1.SwapBuffers();
         }
 
-        private void glControl1_Resize(object sender, EventArgs e)
+        private void DrawMap(LabyrinthMap map, Color4 wallColor, Color4 emptyColor)
         {
-            UpdateProjection();
-            glControl1.Invalidate();
+            float mazeWidth = _map.Width() * LabyrinthMap.TileSize;
+            float mazeHeight = _map.Height() * LabyrinthMap.TileSize;
+            var projection = Matrix4.CreateOrthographicOffCenter(0, mazeWidth, 0, mazeHeight, -1, 1);
+
+            _renderer.Draw(_map,wallColor, emptyColor, Matrix4.Identity, projection);
+        }
+
+        private void RenderPlayer(Player p, Color4 color)
+        {
+            if (p != null && p.IsActive)
+            {
+                _renderer.DrawSquare(p.Position.X, p.Position.Y, p.Size, p.Size, color);
+                float indicatorSize = p.Size / 3f;
+                var (indicatorX, indicatorY) = p.GetIndicatorPosition(indicatorSize);
+                _renderer.DrawSquare(indicatorX, indicatorY, indicatorSize, indicatorSize, new Color4(1f, 1f, 0f, 1f));
+
+
+            }
+        }
+
+        
+
+        private void DrawBase(int gridX, int gridY, Color4 color)
+        {
+            var pos = _map.ConvertToWorldCoordinates(gridX, gridY);
+            _renderer.DrawSquare(pos.X, pos.Y, LabyrinthMap.TileSize, LabyrinthMap.TileSize, color);
+        }
+
+        private void UpdateViewport()
+        {
+            if (glControl1.ClientSize.Width > 0 && glControl1.ClientSize.Height > 0)
+            {
+                glControl1.MakeCurrent();
+                GL.Viewport(0, 0, glControl1.ClientSize.Width, glControl1.ClientSize.Height);
+            }
+        }
+
+        private void CenterSquareControl()
+        {
+            int side = Math.Min(this.ClientSize.Width, this.ClientSize.Height);
+            glControl1.Size = new System.Drawing.Size(side, side);
+            glControl1.Location = new System.Drawing.Point((this.ClientSize.Width - side) / 2, (this.ClientSize.Height - side) / 2);
+        }
+
+        private void Form1_Resize(object sender, EventArgs e)
+        {
+            CenterSquareControl();
+            if (_isLoaded) UpdateViewport();
+        }
+
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            _renderer?.Dispose();
+            base.OnFormClosing(e);
+        }
+
+        protected override bool ProcessDialogKey(Keys keyData)
+        {
+            if (keyData == Keys.Up || keyData == Keys.Down || keyData == Keys.Left || keyData == Keys.Right)
+            {
+                return false;
+            }
+            return base.ProcessDialogKey(keyData);
+        }
+
+        private void Form1_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == _lastProcessedKey)
+                return;
+
+            _lastProcessedKey = e.KeyCode;
+            _game.HandleInput(e.KeyCode);
+        }
+
+        private void Form1_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == _lastProcessedKey)
+                _lastProcessedKey = Keys.None;
         }
     }
 }

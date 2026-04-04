@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,6 +12,9 @@ namespace GameCore
         public int Health { get; set; }
         public int Armor { get; set; }
         public float Speed { get; set; }
+        public float Rotation { get; set; } = 0f;
+        public float DirectionX => (float)Math.Cos(Rotation);
+        public float DirectionY => (float)Math.Sin(Rotation);
 
         public Unit(float x, float y, float size) : base(x, y, size)
         {
@@ -19,6 +23,31 @@ namespace GameCore
         public void Move(float dx, float dy)
         {
             Position += new Point(dx, dy);
+
+            //if (dx != 0)
+            //{
+            //    DirectionX = Math.Sign(dx);
+            //    DirectionY = 0;
+            //}
+            //else if (dy != 0)
+            //{
+            //    DirectionY = Math.Sign(dy);
+            //    DirectionX = 0;
+            //}
+        }
+
+        public void SetDirection(float dx, float dy)
+        {
+            Rotation = (float)Math.Atan2(dy, dx);
+        }
+
+        public (float X, float Y) GetIndicatorPosition(float indicatorSize)
+        {
+            float offset = Size / 2f - indicatorSize / 2f;
+            float indicatorX = Position.X + DirectionX * offset;
+            float indicatorY = Position.Y + DirectionY * offset;
+
+            return (indicatorX, indicatorY);
         }
 
         public virtual void TakeDamage(int damage)

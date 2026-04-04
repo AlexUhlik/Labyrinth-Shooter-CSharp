@@ -10,7 +10,7 @@ namespace GameCore.Map
     public class LabyrinthMap
     {
 
-        public const int TileSize = 500;
+        public const int TileSize = 50;
         public TileType[,] Grid {  get; private set; }
 
         public int Width()
@@ -41,8 +41,9 @@ namespace GameCore.Map
 
         public (int X, int Y) ConvertToTileCoordinates(Point position)
         {
-            int x = (int)(position.X / TileSize);
-            int y = (int)(position.Y / TileSize);
+            // Используем Floor, чтобы 499.99 давало 0, а 500.01 давало 1
+            int x = (int)Math.Floor(position.X / (float)TileSize);
+            int y = (int)Math.Floor(position.Y / (float)TileSize);
             return (x, y);
         }
 
