@@ -1,0 +1,273 @@
+﻿namespace LabyrinthGame
+{
+    partial class TestWindow
+    {
+        /// <summary>
+        /// Required designer variable.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
+
+        /// <summary>
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        #region Windows Form Designer generated code
+
+        /// <summary>
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
+        /// </summary>
+        private void InitializeComponent()
+        {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(TestWindow));
+            this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            this.GameContainer = new System.Windows.Forms.Panel();
+            this.glControl1 = new OpenTK.GLControl();
+            this.Player1Stats = new System.Windows.Forms.Panel();
+            this.stats1 = new System.Windows.Forms.TableLayoutPanel();
+            this.lblP1Ammo = new System.Windows.Forms.TextBox();
+            this.Player2Stats = new System.Windows.Forms.Panel();
+            this.stats2 = new System.Windows.Forms.TableLayoutPanel();
+            this.lblP2Ammo = new System.Windows.Forms.TextBox();
+            this.lblP1Score = new System.Windows.Forms.TextBox();
+            this.pbP1Armor = new LabyrinthGame.CustomProgressBar();
+            this.pbP1Health = new LabyrinthGame.CustomProgressBar();
+            this.pbP2Armor = new LabyrinthGame.CustomProgressBar();
+            this.pbP2Health = new LabyrinthGame.CustomProgressBar();
+            this.tableLayoutPanel1.SuspendLayout();
+            this.GameContainer.SuspendLayout();
+            this.Player1Stats.SuspendLayout();
+            this.stats1.SuspendLayout();
+            this.Player2Stats.SuspendLayout();
+            this.stats2.SuspendLayout();
+            this.SuspendLayout();
+            // 
+            // tableLayoutPanel1
+            // 
+            this.tableLayoutPanel1.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
+            this.tableLayoutPanel1.ColumnCount = 3;
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 60F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20F));
+            this.tableLayoutPanel1.Controls.Add(this.GameContainer, 1, 0);
+            this.tableLayoutPanel1.Controls.Add(this.Player1Stats, 0, 0);
+            this.tableLayoutPanel1.Controls.Add(this.Player2Stats, 2, 0);
+            this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
+            this.tableLayoutPanel1.Name = "tableLayoutPanel1";
+            this.tableLayoutPanel1.RowCount = 1;
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(800, 450);
+            this.tableLayoutPanel1.TabIndex = 0;
+            // 
+            // GameContainer
+            // 
+            this.GameContainer.BackColor = System.Drawing.Color.DimGray;
+            this.GameContainer.Controls.Add(this.glControl1);
+            this.GameContainer.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.GameContainer.Location = new System.Drawing.Point(160, 0);
+            this.GameContainer.Margin = new System.Windows.Forms.Padding(0);
+            this.GameContainer.Name = "GameContainer";
+            this.GameContainer.Size = new System.Drawing.Size(480, 450);
+            this.GameContainer.TabIndex = 1;
+            this.GameContainer.Layout += new System.Windows.Forms.LayoutEventHandler(this.GameContainer_Layout);
+            // 
+            // glControl1
+            // 
+            this.glControl1.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.glControl1.BackColor = System.Drawing.Color.Black;
+            this.glControl1.Location = new System.Drawing.Point(166, 125);
+            this.glControl1.Name = "glControl1";
+            this.glControl1.Size = new System.Drawing.Size(150, 150);
+            this.glControl1.TabIndex = 0;
+            this.glControl1.VSync = false;
+            this.glControl1.Load += new System.EventHandler(this.glControl1_Load);
+            this.glControl1.Paint += new System.Windows.Forms.PaintEventHandler(this.glControl1_Paint);
+            // 
+            // Player1Stats
+            // 
+            this.Player1Stats.BackColor = System.Drawing.SystemColors.ActiveCaption;
+            this.Player1Stats.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("Player1Stats.BackgroundImage")));
+            this.Player1Stats.Controls.Add(this.stats1);
+            this.Player1Stats.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.Player1Stats.Location = new System.Drawing.Point(0, 0);
+            this.Player1Stats.Margin = new System.Windows.Forms.Padding(0);
+            this.Player1Stats.Name = "Player1Stats";
+            this.Player1Stats.Padding = new System.Windows.Forms.Padding(15, 15, 15, 0);
+            this.Player1Stats.Size = new System.Drawing.Size(160, 450);
+            this.Player1Stats.TabIndex = 1;
+            // 
+            // stats1
+            // 
+            this.stats1.ColumnCount = 1;
+            this.stats1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.stats1.Controls.Add(this.lblP1Score, 0, 3);
+            this.stats1.Controls.Add(this.pbP1Armor, 0, 0);
+            this.stats1.Controls.Add(this.pbP1Health, 0, 1);
+            this.stats1.Controls.Add(this.lblP1Ammo, 0, 2);
+            this.stats1.Dock = System.Windows.Forms.DockStyle.Top;
+            this.stats1.Location = new System.Drawing.Point(15, 15);
+            this.stats1.Margin = new System.Windows.Forms.Padding(25, 25, 3, 3);
+            this.stats1.Name = "stats1";
+            this.stats1.RowCount = 4;
+            this.stats1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 20F));
+            this.stats1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 35F));
+            this.stats1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 22.5F));
+            this.stats1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 22.5F));
+            this.stats1.Size = new System.Drawing.Size(130, 94);
+            this.stats1.TabIndex = 3;
+            // 
+            // lblP1Ammo
+            // 
+            this.lblP1Ammo.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.lblP1Ammo.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.792453F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.lblP1Ammo.Location = new System.Drawing.Point(3, 53);
+            this.lblP1Ammo.Name = "lblP1Ammo";
+            this.lblP1Ammo.ReadOnly = true;
+            this.lblP1Ammo.Size = new System.Drawing.Size(124, 19);
+            this.lblP1Ammo.TabIndex = 2;
+            // 
+            // Player2Stats
+            // 
+            this.Player2Stats.BackColor = System.Drawing.SystemColors.ActiveCaption;
+            this.Player2Stats.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("Player2Stats.BackgroundImage")));
+            this.Player2Stats.Controls.Add(this.stats2);
+            this.Player2Stats.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.Player2Stats.Location = new System.Drawing.Point(640, 0);
+            this.Player2Stats.Margin = new System.Windows.Forms.Padding(0);
+            this.Player2Stats.Name = "Player2Stats";
+            this.Player2Stats.Padding = new System.Windows.Forms.Padding(15, 15, 15, 0);
+            this.Player2Stats.Size = new System.Drawing.Size(160, 450);
+            this.Player2Stats.TabIndex = 0;
+            // 
+            // stats2
+            // 
+            this.stats2.ColumnCount = 1;
+            this.stats2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.stats2.Controls.Add(this.pbP2Armor, 0, 0);
+            this.stats2.Controls.Add(this.lblP2Ammo, 0, 2);
+            this.stats2.Controls.Add(this.pbP2Health, 0, 1);
+            this.stats2.Dock = System.Windows.Forms.DockStyle.Top;
+            this.stats2.Location = new System.Drawing.Point(15, 15);
+            this.stats2.Name = "stats2";
+            this.stats2.RowCount = 3;
+            this.stats2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 30F));
+            this.stats2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 40F));
+            this.stats2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 30F));
+            this.stats2.Size = new System.Drawing.Size(130, 72);
+            this.stats2.TabIndex = 3;
+            // 
+            // lblP2Ammo
+            // 
+            this.lblP2Ammo.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.792453F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.lblP2Ammo.Location = new System.Drawing.Point(3, 52);
+            this.lblP2Ammo.Name = "lblP2Ammo";
+            this.lblP2Ammo.ReadOnly = true;
+            this.lblP2Ammo.Size = new System.Drawing.Size(68, 19);
+            this.lblP2Ammo.TabIndex = 2;
+            // 
+            // lblP1Score
+            // 
+            this.lblP1Score.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.lblP1Score.Location = new System.Drawing.Point(3, 74);
+            this.lblP1Score.Name = "lblP1Score";
+            this.lblP1Score.Size = new System.Drawing.Size(124, 20);
+            this.lblP1Score.TabIndex = 4;
+            // 
+            // pbP1Armor
+            // 
+            this.pbP1Armor.BarColor = System.Drawing.Color.LightSkyBlue;
+            this.pbP1Armor.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pbP1Armor.Location = new System.Drawing.Point(3, 3);
+            this.pbP1Armor.MaxValue = 50;
+            this.pbP1Armor.Name = "pbP1Armor";
+            this.pbP1Armor.Size = new System.Drawing.Size(124, 12);
+            this.pbP1Armor.TabIndex = 2;
+            this.pbP1Armor.Text = "customProgressBar1";
+            this.pbP1Armor.Value = 0;
+            // 
+            // pbP1Health
+            // 
+            this.pbP1Health.BarColor = System.Drawing.Color.GreenYellow;
+            this.pbP1Health.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pbP1Health.Location = new System.Drawing.Point(3, 21);
+            this.pbP1Health.MaxValue = 100;
+            this.pbP1Health.Name = "pbP1Health";
+            this.pbP1Health.Size = new System.Drawing.Size(124, 26);
+            this.pbP1Health.TabIndex = 3;
+            this.pbP1Health.Text = "customProgressBar1";
+            this.pbP1Health.Value = 0;
+            // 
+            // pbP2Armor
+            // 
+            this.pbP2Armor.BarColor = System.Drawing.Color.LightSkyBlue;
+            this.pbP2Armor.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pbP2Armor.Location = new System.Drawing.Point(3, 3);
+            this.pbP2Armor.MaxValue = 50;
+            this.pbP2Armor.Name = "pbP2Armor";
+            this.pbP2Armor.Size = new System.Drawing.Size(124, 15);
+            this.pbP2Armor.TabIndex = 2;
+            this.pbP2Armor.Text = "customProgressBar1";
+            this.pbP2Armor.Value = 0;
+            // 
+            // pbP2Health
+            // 
+            this.pbP2Health.BarColor = System.Drawing.Color.GreenYellow;
+            this.pbP2Health.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pbP2Health.Location = new System.Drawing.Point(3, 24);
+            this.pbP2Health.MaxValue = 100;
+            this.pbP2Health.Name = "pbP2Health";
+            this.pbP2Health.Size = new System.Drawing.Size(124, 22);
+            this.pbP2Health.TabIndex = 3;
+            this.pbP2Health.Text = "customProgressBar1";
+            this.pbP2Health.Value = 0;
+            // 
+            // TestWindow
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.tableLayoutPanel1);
+            this.Name = "TestWindow";
+            this.Text = "TestWindow";
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.TestWindow_KeyDown);
+            this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.TestWindow_KeyUp);
+            this.tableLayoutPanel1.ResumeLayout(false);
+            this.GameContainer.ResumeLayout(false);
+            this.Player1Stats.ResumeLayout(false);
+            this.stats1.ResumeLayout(false);
+            this.stats1.PerformLayout();
+            this.Player2Stats.ResumeLayout(false);
+            this.stats2.ResumeLayout(false);
+            this.stats2.PerformLayout();
+            this.ResumeLayout(false);
+
+        }
+
+        #endregion
+
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
+        private System.Windows.Forms.Panel GameContainer;
+        private OpenTK.GLControl glControl1;
+        private System.Windows.Forms.Panel Player1Stats;
+        private System.Windows.Forms.Panel Player2Stats;
+        private System.Windows.Forms.TableLayoutPanel stats1;
+        private CustomProgressBar pbP1Armor;
+        private System.Windows.Forms.TextBox lblP1Ammo;
+        private CustomProgressBar pbP1Health;
+        private System.Windows.Forms.TableLayoutPanel stats2;
+        private CustomProgressBar pbP2Armor;
+        private System.Windows.Forms.TextBox lblP2Ammo;
+        private CustomProgressBar pbP2Health;
+        private System.Windows.Forms.TextBox lblP1Score;
+    }
+}

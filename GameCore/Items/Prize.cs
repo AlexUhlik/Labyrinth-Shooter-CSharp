@@ -15,9 +15,5 @@ namespace GameCore.Items
 
         public abstract void ApplyEffect(Player player);
 
-        public override void Draw()
-        {
-            
-        }
     }
 }

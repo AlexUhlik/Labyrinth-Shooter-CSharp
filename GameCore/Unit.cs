@@ -23,17 +23,6 @@ namespace GameCore
         public void Move(float dx, float dy)
         {
             Position += new Point(dx, dy);
-
-            //if (dx != 0)
-            //{
-            //    DirectionX = Math.Sign(dx);
-            //    DirectionY = 0;
-            //}
-            //else if (dy != 0)
-            //{
-            //    DirectionY = Math.Sign(dy);
-            //    DirectionX = 0;
-            //}
         }
 
         public void SetDirection(float dx, float dy)

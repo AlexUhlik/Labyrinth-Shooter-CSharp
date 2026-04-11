@@ -20,8 +20,6 @@ namespace GameCore
             Size = size;
         }
 
-        public abstract void Draw();
-
         public RectangleF GetBounds()
         {
             return new RectangleF(Position.X, Position.Y, Size, Size);

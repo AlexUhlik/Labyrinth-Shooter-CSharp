@@ -1,4 +1,5 @@
 ﻿using Application.Services;
+using Application.Game;
 using GameCore.Characters;
 using GameCore.Map;
 using OpenTK;
@@ -7,24 +8,19 @@ using OpenTK.Graphics.OpenGL4;
 using System;
 using System.Diagnostics;
 using System.Windows.Forms;
+using DrawLib.Graphics;
 
 namespace LabyrinthGame
 {
     public partial class Form1 : Form
     {
-        private static readonly Color4 BackgroundColor = new Color4(0.05f, 0.05f, 0.05f, 1.0f);
-        private static readonly Color4 Player1Color = new Color4(0.0f, 0.5f, 1.0f, 1.0f);
-        private static readonly Color4 Player2Color = new Color4(1.0f, 0.2f, 0.2f, 1.0f);
-        private static readonly Color4 Base1Color = new Color4(0.0f, 0.5f, 1.0f, 0.4f);
-        private static readonly Color4 Base2Color = new Color4(1.0f, 0.2f, 0.2f, 0.4f);
-
-        private static readonly Color4 WallColor = new Color4(0.3f, 0.3f, 0.3f, 1.0f);
-        private static readonly Color4 EmptyColor = new Color4(0.1f, 0.1f, 0.1f, 1.0f);
-
         private GameRenderer _renderer;
+        private Painter _painter;
+
         private LabyrinthMap _map;
-        private MapGenerator _generator = new MapGenerator();
+        private MapGenerator _generator;
         private GameController _game;
+
         private bool _isLoaded = false;
         private Keys _lastProcessedKey = Keys.None;
 
@@ -40,6 +36,8 @@ namespace LabyrinthGame
             Timer timer = new Timer { Interval = 16 };
             timer.Tick += (s, e) => { if (_isLoaded) glControl1.Invalidate(); };
             timer.Start();
+
+
         }
 
         private void glControl1_Load(object sender, EventArgs e)
@@ -47,14 +45,21 @@ namespace LabyrinthGame
             try
             {
                 glControl1.MakeCurrent();
-                _renderer = new GameRenderer();
-                _renderer.Init();
 
+                _renderer = new GameRenderer();
+                _generator = new MapGenerator();
+
+                //ShowDialog(new TestWindow());
+                _renderer.Init();
                 _map = _generator.GenerateMaze(31, 31);
+
+                _painter = new Painter(_renderer);
                 _game = new GameController(_map);
 
-                _isLoaded = true;
+                _painter.LoadAssets();
+                _painter.SetupCamera(_map);
 
+                _isLoaded = true;
                 CenterSquareControl();
                 UpdateViewport();
             }
@@ -67,50 +72,61 @@ namespace LabyrinthGame
         private void glControl1_Paint(object sender, PaintEventArgs e)
         {
             if (!_isLoaded || _map == null) return;
+            _game.UpdatePhysics();
 
             glControl1.MakeCurrent();
-            GL.ClearColor(BackgroundColor);
-            GL.Clear(ClearBufferMask.ColorBufferBit);
+            _painter.Clear();
 
-            DrawMap(_map, WallColor, EmptyColor);
+            _painter.Draw(_map);
 
-            DrawBase(1, 1, Base1Color);
-            DrawBase(_map.Width() - 2, _map.Height() - 2, Base2Color);
+            DrawEnemies();
 
-            RenderPlayer(_game.Player1, Player1Color);
-            RenderPlayer(_game.Player2, Player2Color);
+            _painter.Draw(_game.Player1);
+            _painter.Draw(_game.Player2);
+
+            DrawBullets();
+
+
+            //_painter.DrawBullets(_game.ActiveBullets);
+
+
+
 
             glControl1.SwapBuffers();
+            UpdateStats();
         }
 
-        private void DrawMap(LabyrinthMap map, Color4 wallColor, Color4 emptyColor)
+        private void DrawBullets()
         {
-            float mazeWidth = _map.Width() * LabyrinthMap.TileSize;
-            float mazeHeight = _map.Height() * LabyrinthMap.TileSize;
-            var projection = Matrix4.CreateOrthographicOffCenter(0, mazeWidth, 0, mazeHeight, -1, 1);
-
-            _renderer.Draw(_map,wallColor, emptyColor, Matrix4.Identity, projection);
-        }
-
-        private void RenderPlayer(Player p, Color4 color)
-        {
-            if (p != null && p.IsActive)
+            foreach (var bullet in _game.ActiveBullets)
             {
-                _renderer.DrawSquare(p.Position.X, p.Position.Y, p.Size, p.Size, color);
-                float indicatorSize = p.Size / 3f;
-                var (indicatorX, indicatorY) = p.GetIndicatorPosition(indicatorSize);
-                _renderer.DrawSquare(indicatorX, indicatorY, indicatorSize, indicatorSize, new Color4(1f, 1f, 0f, 1f));
-
-
+                _painter.Draw(bullet);
             }
         }
 
-        
-
-        private void DrawBase(int gridX, int gridY, Color4 color)
+        private void DrawEnemies()
         {
-            var pos = _map.ConvertToWorldCoordinates(gridX, gridY);
-            _renderer.DrawSquare(pos.X, pos.Y, LabyrinthMap.TileSize, LabyrinthMap.TileSize, color);
+            foreach (var enemy in _game.Enemies)
+            {
+                _painter.Draw(enemy);
+            }
+        }
+
+        private void UpdateStats()
+        {
+            pbP1Health.Value = _game.Player1.Health;
+            pbP1Armor.Value = _game.Player1.Armor;
+            lblP1Ammo.Text = $"{_game.Player1.Ammunition}";
+
+            pbP2Health.Value = _game.Player2.Health;
+            pbP2Armor.Value = _game.Player2.Armor;
+            lblP2Ammo.Text = $"{_game.Player2.Ammunition}";
+
+            pbP1Health.Invalidate();
+            pbP1Armor.Invalidate();
+
+            pbP2Health.Invalidate();
+            pbP2Armor.Invalidate();
         }
 
         private void UpdateViewport()
@@ -128,6 +144,8 @@ namespace LabyrinthGame
             glControl1.Size = new System.Drawing.Size(side, side);
             glControl1.Location = new System.Drawing.Point((this.ClientSize.Width - side) / 2, (this.ClientSize.Height - side) / 2);
         }
+
+
 
         private void Form1_Resize(object sender, EventArgs e)
         {
@@ -155,8 +173,49 @@ namespace LabyrinthGame
             if (e.KeyCode == _lastProcessedKey)
                 return;
 
-            _lastProcessedKey = e.KeyCode;
-            _game.HandleInput(e.KeyCode);
+            GameInput gameInput = GameInput.None;
+
+            switch (e.KeyCode)
+            {
+                case Keys.W:
+                    gameInput = GameInput.W;
+                    break;
+                case Keys.S:
+                    gameInput = GameInput.S;
+                    break;
+                case Keys.A:
+                    gameInput = GameInput.A;
+                    break;
+                case Keys.D:
+                    gameInput = GameInput.D;
+                    break;
+                case Keys.Up:
+                    gameInput = GameInput.Up;
+                    break;
+                case Keys.Down:
+                    gameInput = GameInput.Down;
+                    break;
+                case Keys.Left:
+                    gameInput = GameInput.Left;
+                    break;
+                case Keys.Right:
+                    gameInput = GameInput.Right;
+                    break;
+                case Keys.Space:
+                    gameInput = GameInput.Space;
+                    //_game.HandleInput(GameInput.Space); 
+                    break;
+                case Keys.Enter:
+                    gameInput = GameInput.Enter;
+                    //_game.HandleInput(GameInput.Enter); 
+                    break;
+            }
+
+            if (gameInput != GameInput.None)
+            {
+                _lastProcessedKey = e.KeyCode;
+                _game.HandleInput(gameInput);
+            }
         }
 
         private void Form1_KeyUp(object sender, KeyEventArgs e)

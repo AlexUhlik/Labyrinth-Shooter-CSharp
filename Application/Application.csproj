@@ -36,6 +36,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -44,10 +45,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="PrizeFactory.cs" />
+    <Compile Include="Game\GameController.cs" />
+    <Compile Include="Game\GameInput.cs" />
+    <Compile Include="Services\EnemyFactory.cs" />
+    <Compile Include="Services\PrizeFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\MapGenerator.cs" />
     <Compile Include="Services\MapLoader.cs" />
+    <Compile Include="Services\Type1EnemyFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\GameCore\GameCore.csproj">
