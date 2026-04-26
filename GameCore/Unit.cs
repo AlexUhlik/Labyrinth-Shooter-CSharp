@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GameCore.Bullets;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -16,6 +17,8 @@ namespace GameCore
         public float DirectionX => (float)Math.Cos(Rotation);
         public float DirectionY => (float)Math.Sin(Rotation);
 
+        public event Action<Unit, int> OnDied;
+
         public Unit(float x, float y, float size) : base(x, y, size)
         {
         }
@@ -30,16 +33,16 @@ namespace GameCore
             Rotation = (float)Math.Atan2(dy, dx);
         }
 
-        public (float X, float Y) GetIndicatorPosition(float indicatorSize)
-        {
-            float offset = Size / 2f - indicatorSize / 2f;
-            float indicatorX = Position.X + DirectionX * offset;
-            float indicatorY = Position.Y + DirectionY * offset;
+        //public (float X, float Y) GetIndicatorPosition(float indicatorSize)
+        //{
+        //    float offset = Size / 2f - indicatorSize / 2f;
+        //    float indicatorX = Position.X + DirectionX * offset;
+        //    float indicatorY = Position.Y + DirectionY * offset;
 
-            return (indicatorX, indicatorY);
-        }
+        //    return (indicatorX, indicatorY);
+        //}
 
-        public virtual void TakeDamage(int damage)
+        public virtual void TakeDamage(int damage, int attackerId)
         {
             int armorDamage = Math.Min(damage, Armor);
 
@@ -48,11 +51,21 @@ namespace GameCore
             Armor -= armorDamage;
             Health -= healtDamage;
 
-            if (Health < 0)
+            if (Health <= 0)
             {
                 Health = 0;
                 IsActive = false;
+                OnDied?.Invoke(this, attackerId);
             }
         }
+
+        public void TakeDamage(Bullet bullet)
+        {
+            TakeDamage(bullet.GetDamage(), bullet.OwnerId);
+        }
+
+        public abstract Bullet Shoot(); 
     }
+
+
 }

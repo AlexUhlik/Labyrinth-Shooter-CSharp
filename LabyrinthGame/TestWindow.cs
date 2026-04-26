@@ -62,6 +62,42 @@ namespace LabyrinthGame
             }
         }
 
+        private void ShowEndScreen()
+        {
+            // Чтобы не вызывать это каждый кадр, можно проверить Visible
+            if (pnlGameOver.Visible) return;
+
+            int s1 = _game.Player1.Score;
+            int s2 = _game.Player2.Score;
+
+            string winnerText;
+            Color winnerColor;
+
+            if (s1 > s2)
+            {
+                winnerText = "ПОБЕДИЛ СИНИЙ ИГРОК";
+                winnerColor = Color.LightSkyBlue;
+            }
+            else if (s2 > s1)
+            {
+                winnerText = "ПОБЕДИЛ КРАСНЫЙ ИГРОК";
+                winnerColor = Color.Tomato;
+            }
+            else
+            {
+                winnerText = "НИЧЬЯ!";
+                winnerColor = Color.White;
+            }
+
+            // Настраиваем элементы на панели (предположим, они созданы в дизайнере)
+            lblWinner.Text = winnerText;
+            lblWinner.ForeColor = winnerColor;
+            lblFinalScore.Text = $"{s1} : {s2}";
+
+            pnlGameOver.Visible = true;
+            pnlGameOver.BringToFront(); // Выводим поверх OpenGL контроля
+        }
+
         private void GameContainer_Layout(object sender, LayoutEventArgs e)
         {
             UpdateEverything();
@@ -88,7 +124,30 @@ namespace LabyrinthGame
                 glControl1.MakeCurrent();
                 GL.Viewport(0, 0, glControl1.Width, glControl1.Height);
             }
+
+            //pnlGameOver.Left = (GameContainer.Width - pnlGameOver.Width) / 2;
+            //pnlGameOver.Top = (GameContainer.Height - pnlGameOver.Height) / 2;
+
+            int targetWidth = (int)(pw * 0.6);
+            int targetHeight = (int)(ph * 0.5);
+
+            pnlGameOver.Width = Math.Max(targetWidth, 300);  // Не меньше 300px
+            pnlGameOver.Height = Math.Max(targetHeight, 200); // Не меньше 200px
+
+            // 3. Центрируем уже растянутую панель
+            pnlGameOver.Left = (pw - pnlGameOver.Width) / 2;
+            pnlGameOver.Top = (ph - pnlGameOver.Height) / 2;
+
+            // 4. Чтобы элементы внутри панели тоже распределялись красиво:
+            // Убедись, что у Label внутри панели свойство Anchor настроено на "None" 
+            // или программно центрируй их относительно pnlGameOver.
+            lblWinner.Left = (pnlGameOver.Width - lblWinner.Width) / 2;
+            lblWinner.Top = 40; // Фиксированный отступ сверху
+            lblFinalScore.Left = (pnlGameOver.Width - lblWinner.Width) / 2;
+            lblFinalScore.Top = 40; // Фиксированный отступ сверху
         }
+
+
 
         private void glControl1_Paint(object sender, PaintEventArgs e)
         {
@@ -97,45 +156,38 @@ namespace LabyrinthGame
             float deltaTime = (float)_frameClock.Elapsed.TotalSeconds;
             _frameClock.Restart();
 
-            _game.UpdateWorld(deltaTime);
+            //_game.UpdateWorld(deltaTime);
+            if (!_game.IsGameOver)
+            {
+                _game.UpdateWorld(deltaTime);
+            }
+            else
+            {
+                // Если игра закончилась, показываем экран
+                ShowEndScreen();
+            }
 
             glControl1.MakeCurrent();
 
             _painter.Clear();
             _painter.Draw(_map);
 
-            DrawEnemies();
-            DrawBullets();
-            
-
-            _painter.Draw(_game.Player1);
-            _painter.Draw(_game.Player2);
+            _painter.DrawObjects(_game.GameObjects);
 
             glControl1.SwapBuffers();
             UpdateStats();
         }
-
-        private void DrawBullets()
-        {
-            foreach (var bullet in _game.ActiveBullets) _painter.Draw(bullet);
-        }
-
-        private void DrawEnemies()
-        {
-            foreach (var enemy in _game.Enemies) _painter.Draw(enemy);
-        }
-
         private void UpdateStats()
         {
             pbP1Health.Value = _game.Player1.Health;
             pbP1Armor.Value = _game.Player1.Armor;
-            lblP1Ammo.Text = $"{_game.Player1.Ammunition}";
-            lblP1Score.Text = $"Score: {_game.Player1.Score}"; 
+            P1Ammo.Text = $"Ammo: {_game.Player1.Ammunition}";
+            P1Score.Text = $"Score: {_game.Player1.Score}"; 
 
             pbP2Health.Value = _game.Player2.Health;
             pbP2Armor.Value = _game.Player2.Armor;
-            lblP2Ammo.Text = $"{_game.Player2.Ammunition}";
-            //lblP2Score.Text = $"Score: {_game.Player2.Score}"; // Новое: вывод очков P2
+            P2Ammo.Text = $"Ammo: {_game.Player2.Ammunition}";
+            P2Score.Text = $"Score: {_game.Player2.Score}";
 
             pbP1Health.Invalidate();
             pbP1Armor.Invalidate();
@@ -152,12 +204,13 @@ namespace LabyrinthGame
 
         private void TestWindow_KeyDown(object sender, KeyEventArgs e)
         {
+            if (_game.IsGameOver) return;
             if (e.KeyCode == _lastProcessedKey) return;
 
             GameInput gameInput = GameInput.None;
             switch (e.KeyCode)
             {
-                case Keys.W: gameInput = GameInput.W; break;
+                case Keys.W: gameInput = GameInput.W; break; 
                 case Keys.S: gameInput = GameInput.S; break;
                 case Keys.A: gameInput = GameInput.A; break;
                 case Keys.D: gameInput = GameInput.D; break;

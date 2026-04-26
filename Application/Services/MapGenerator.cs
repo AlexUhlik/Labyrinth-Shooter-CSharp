@@ -10,74 +10,105 @@ namespace Application.Services
 
         public LabyrinthMap GenerateMaze(int width, int height)
         {
-            if (width % 2 == 0 || height % 2 == 0)
-                throw new ArgumentException("Размеры должны быть нечетными.");
+            ValidateDimensions(width, height);
 
-            var grid = new TileType[width, height];
+            var grid = InitializeGrid(width, height);
+            var stack = new Stack<(int x, int y)>();
 
-            for (int x = 0; x < width; x++)
-                for (int y = 0; y < height; y++)
-                    grid[x, y] = TileType.Wall;
+            int startX = 1;
+            int startY = 1;
 
-            var path = new Stack<(int x, int y)>();
+            SetSymmetricEmpty(grid, startX, startY, width, height);
+            stack.Push((startX, startY));
 
-            // Стартовые точки для двух игроков (зеркальные углы)
-            int startX = 1, startY = 1;
-            grid[startX, startY] = TileType.Empty;
-            grid[width - 1 - startX, height - 1 - startY] = TileType.Empty;
-
-            path.Push((startX, startY));
-
-            while (path.Count > 0)
+            while (stack.Count > 0)
             {
-                var (cx, cy) = path.Peek();
-                var neighbors = GetValidSymmetricNeighbors(grid, cx, cy, width, height);
+                var (currentX, currentY) = stack.Peek();
+                var neighbors = GetValidSymmetricNeighbors(grid, currentX, currentY, width, height);
 
                 if (neighbors.Count > 0)
                 {
-                    var (nx, ny) = neighbors[_random.Next(neighbors.Count)];
+                    var (nextX, nextY) = neighbors[_random.Next(neighbors.Count)];
 
-                    int wx = cx + (nx - cx) / 2;
-                    int wy = cy + (ny - cy) / 2;
+                    int wallX = currentX + (nextX - currentX) / 2;
+                    int wallY = currentY + (nextY - currentY) / 2;
 
-                    // Пробиваем основные клетки
-                    grid[wx, wy] = TileType.Empty;
-                    grid[nx, ny] = TileType.Empty;
+                    SetSymmetricEmpty(grid, wallX, wallY, width, height);
+                    SetSymmetricEmpty(grid, nextX, nextY, width, height);
 
-                    // Пробиваем зеркальные клетки
-                    grid[width - 1 - wx, height - 1 - wy] = TileType.Empty;
-                    grid[width - 1 - nx, height - 1 - ny] = TileType.Empty;
-
-                    path.Push((nx, ny));
+                    stack.Push((nextX, nextY));
                 }
                 else
                 {
-                    path.Pop();
+                    stack.Pop();
                 }
             }
 
-            grid[width / 2, height / 2] = TileType.Empty; // Гарантируем проход через центр
+            grid[width / 2, height / 2] = TileType.Empty;
 
             return new LabyrinthMap(grid);
+        }
+
+        private void ValidateDimensions(int width, int height)
+        {
+            if (width % 2 == 0 || height % 2 == 0)
+            {
+                throw new ArgumentException("Размеры должны быть нечетными.");
+            }
+        }
+
+        private TileType[,] InitializeGrid(int width, int height)
+        {
+            var grid = new TileType[width, height];
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    grid[x, y] = TileType.Wall;
+                }
+            }
+            return grid;
+        }
+
+        private void SetSymmetricEmpty(TileType[,] grid, int x, int y, int w, int h)
+        {
+            grid[x, y] = TileType.Empty;
+            var (mirrorX, mirrorY) = GetMirrorCoordinates(x, y, w, h);
+            grid[mirrorX, mirrorY] = TileType.Empty;
+        }
+
+        private (int x, int y) GetMirrorCoordinates(int x, int y, int w, int h)
+        {
+            return (w - 1 - x, h - 1 - y);
         }
 
         private List<(int x, int y)> GetValidSymmetricNeighbors(TileType[,] grid, int x, int y, int w, int h)
         {
             var neighbors = new List<(int x, int y)>();
-            int[] dx = { 0, 0, -2, 2 }, dy = { -2, 2, 0, 0 };
+            int[] dx = { 0, 0, -2, 2 };
+            int[] dy = { -2, 2, 0, 0 };
 
             for (int i = 0; i < 4; i++)
             {
-                int nx = x + dx[i], ny = y + dy[i];
+                int nx = x + dx[i];
+                int ny = y + dy[i];
 
-                if (nx > 0 && nx < w - 1 && ny > 0 && ny < h - 1)
+                if (IsInsideBounds(nx, ny, w, h))
                 {
-                    // Проверяем, чтобы и сама клетка, и её зеркальное отражение были стенами
-                    if (grid[nx, ny] == TileType.Wall && grid[w - 1 - nx, h - 1 - ny] == TileType.Wall)
+                    var (mx, my) = GetMirrorCoordinates(nx, ny, w, h);
+
+                    if (grid[nx, ny] == TileType.Wall && grid[mx, my] == TileType.Wall)
+                    {
                         neighbors.Add((nx, ny));
+                    }
                 }
             }
             return neighbors;
+        }
+
+        private bool IsInsideBounds(int x, int y, int w, int h)
+        {
+            return x > 0 && x < w - 1 && y > 0 && y < h - 1;
         }
     }
 }

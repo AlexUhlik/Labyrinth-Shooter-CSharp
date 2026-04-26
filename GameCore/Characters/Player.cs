@@ -42,6 +42,31 @@ namespace GameCore.Characters
             Ammunition = 40;
             Score = Math.Max(0, Score - 500);
         }
-        
+
+        public override Bullet Shoot()
+        {
+            if (Ammunition <= 0) return null;
+
+            Ammunition--;
+
+            return new Bullet(
+                Position.X,
+                Position.Y,
+                DirectionX,
+                DirectionY,
+                CurrentBullet,
+                Id
+            );
+        }
+
+        public void UpdatePowerUps(float deltaTime)
+        {
+            if (CurrentBullet is BulletDecorator decorator)
+            {
+                decorator.UpdateTime(deltaTime);
+                CurrentBullet = BulletTools.Cleanup(CurrentBullet);
+            }
+        }
+
     }
 }

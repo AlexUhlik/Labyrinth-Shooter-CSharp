@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Windows.Forms; // 1. Это пространство имен ОБЯЗАТЕЛЬНО
+using System.Windows.Forms; 
 
 namespace LabyrinthGame
 {

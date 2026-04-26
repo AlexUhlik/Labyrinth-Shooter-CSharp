@@ -1,4 +1,5 @@
-﻿/*using Application.Services;
+﻿using Application.Services;
+using GameCore;
 using GameCore.Bullets;
 using GameCore.Characters;
 using GameCore.Factories;
@@ -6,445 +7,318 @@ using GameCore.Items;
 using GameCore.Map;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-//using System.Windows.Forms;
-
-namespace Application.Game
-{
-    public class GameController
-    {
-        private LabyrinthMap _map;
-        private EnemyFactory _enemyFactory;
-        public Player Player1 { get; private set; }
-        public Player Player2 { get; private set; }
-
-        public List<Bullet> ActiveBullets { get; } = new List<Bullet>();
-        public List<Enemy> Enemies { get; } = new List<Enemy>();
-        public GameController(LabyrinthMap map)
-        {
-            _map = map;
-
-            var p1Pos = _map.ConvertToWorldCoordinates(1, 1);
-            Player1 = new Player(1, p1Pos.X, p1Pos.Y) { Size = 50 };
-
-            var p2Pos = _map.ConvertToWorldCoordinates(_map.Width() - 2, _map.Height() - 2);
-            Player2 = new Player(2, p2Pos.X, p2Pos.Y) { Size = 50 };
-
-            var playersList = new List<Player> { Player1, Player2 };
-
-            _enemyFactory = new Type1EnemyFactory(_map, playersList);
-            InitializeLevel();
-        }
-
-        public void InitializeLevel()
-        {
-            for (int i = 0; i < 15; i++)
-            {
-                var enemy = _enemyFactory.SpawnRandom(25f);
-                Enemies.Add(enemy);
-                System.Diagnostics.Debug.WriteLine($"Враг #{i} создан: X={enemy.Position.X}, Y={enemy.Position.Y}");
-            }
-        }
-
-            //for (int i = 0; i < 3; i++)
-            //{
-            //    Prizes.Add(_prizeFactory.SpawnRandom(150f));
-            //}
-        
-
-        public void HandleInput(GameInput keyCode)
-        {
-            Console.WriteLine($"HandleInput вызван с клавишей: {keyCode}, Время: {DateTime.Now:HH:mm:ss.fff}");
-
-            UpdatePlayerPosition(Player1, keyCode, GameInput.W, GameInput.S, GameInput.A, GameInput.D);
-            UpdatePlayerPosition(Player2, keyCode, GameInput.Up, GameInput.Down, GameInput.Left, GameInput.Right);
-
-            if (keyCode == GameInput.Space)
-            {
-                ExecuteShoot(Player1);
-            }
-            else if (keyCode == GameInput.Enter)
-            {
-                ExecuteShoot(Player2);
-            }
-        }
-
-        //private void UpdatePlayerPosition(Player player, GameInput pressedKey, GameInput up, GameInput down, GameInput left, GameInput right)
-        //{
-        //    float dx = 0, dy = 0;
-        //    if (pressedKey == up) dy = LabyrinthMap.TileSize;
-        //    else if (pressedKey == down) dy = -LabyrinthMap.TileSize;
-        //    else if (pressedKey == left) dx = -LabyrinthMap.TileSize;
-        //    else if (pressedKey == right) dx = LabyrinthMap.TileSize;
-
-        //    if (dx != 0 || dy != 0)
-        //    {
-        //        var nextPos = new GameCore.Point(player.Position.X + dx, player.Position.Y + dy);
-        //        var gridCoords = _map.ConvertToTileCoordinates(nextPos);
-
-        //        if (!_map.IsWall(gridCoords.X, gridCoords.Y))
-        //        {
-        //            player.SetDirection(dx, dy);
-        //            player.Move(dx, dy);
-        //        }
-        //    }
-        //}
-
-        private void UpdatePlayerPosition(Player player, GameInput pressedKey, GameInput up, GameInput down, GameInput left, GameInput right)
-        {
-            float dx = 0, dy = 0;
-
-            if (pressedKey == up) dy = LabyrinthMap.TileSize;
-            else if (pressedKey == down) dy = -LabyrinthMap.TileSize;
-            else if (pressedKey == left) dx = -LabyrinthMap.TileSize;
-            else if (pressedKey == right) dx = LabyrinthMap.TileSize;
-
-            if (dx != 0 || dy != 0)
-            {
-                int desiredX = Math.Sign(dx);
-                int desiredY = Math.Sign(dy);
-
-                bool isAlreadyFacing = (desiredX == (int)player.DirectionX && desiredY == (int)player.DirectionY);
-
-                if (!isAlreadyFacing)
-                {
-                    player.SetDirection(dx, dy);
-                }
-                else
-                {
-                    var nextPos = new GameCore.Point(player.Position.X + dx, player.Position.Y + dy);
-                    var gridCoords = _map.ConvertToTileCoordinates(nextPos);
-
-                    if (!_map.IsWall(gridCoords.X, gridCoords.Y))
-                    {
-                        player.Move(dx, dy);
-                    }
-                }
-            }
-        }
-
-        private void ExecuteShoot(Player player)
-        {
-            if (player.Ammunition <= 0) return;
-            player.Ammunition--;
-
-            //float centerX = player.Position.X + player.Size / 2f;
-            //float centerY = player.Position.Y + player.Size / 2f;
-
-            float centerX = player.Position.X;
-            float centerY = player.Position.Y;
-
-            var bullet = new Bullet(
-                centerX,
-                centerY,
-                player.DirectionX,
-                player.DirectionY,
-                player.CurrentBullet,
-                player.Id
-            );
-
-            ActiveBullets.Add(bullet);
-        }
-
-        //public void UpdatePhysics()
-        //{
-        //    for (int i = ActiveBullets.Count - 1; i >= 0; i--)
-        //    {
-        //        var b = ActiveBullets[i];
-        //        b.Update();
-
-        //        var grid = _map.ConvertToTileCoordinates(b.Position);
-        //        if (_map.IsWall(grid.X, grid.Y))
-        //        {
-        //            ActiveBullets.RemoveAt(i);
-        //            continue;
-        //        }
-
-        //        Player enemy = (b.OwnerId == 1) ? Player2 : Player1;
-        //        if (b.GetBounds().IntersectsWith(enemy.GetBounds()))
-        //        {
-        //            enemy.TakeDamage(b.GetDamage());
-        //            ActiveBullets.RemoveAt(i);
-        //        }
-        //    }
-        //    for (int i = Enemies.Count - 1; i >= 0; i--)
-        //    {
-        //        var enemy = Enemies[i];
-
-        //        // Если HP кончилось — удаляем
-        //        if (enemy.Health <= 0)
-        //        {
-        //            Enemies.RemoveAt(i);
-        //            continue;
-        //        }
-
-        //        // Вызываем ИИ (передаем игроков для проверки видимости)
-        //        bool shootRequested = enemy.UpdateAI(_map, Player1, Player2);
-
-        //        if (shootRequested)
-        //        {
-        //            ExecuteEnemyShoot(enemy);
-        //        }
-        //    }
-        //}
-
-        public void UpdatePhysics()
-        {
-            for (int i = ActiveBullets.Count - 1; i >= 0; i--)
-            {
-                var b = ActiveBullets[i];
-                b.Update();
-
-                var grid = _map.ConvertToTileCoordinates(b.Position);
-                if (_map.IsWall(grid.X, grid.Y))
-                {
-                    ActiveBullets.RemoveAt(i);
-                    continue;
-                }
-
-                bool bulletDestroyed = false;
-
-                if (b.OwnerId == 1 || b.OwnerId == 2)
-                {
-                    Player opponent = (b.OwnerId == 1) ? Player2 : Player1;
-                    if (b.GetBounds().IntersectsWith(opponent.GetBounds()))
-                    {
-                        opponent.TakeDamage(b.GetDamage());
-                        bulletDestroyed = true;
-                    }
-
-                    if (!bulletDestroyed)
-                    {
-                        for (int j = Enemies.Count - 1; j >= 0; j--)
-                        {
-                            if (b.GetBounds().IntersectsWith(Enemies[j].GetBounds()))
-                            {
-                                Enemies[j].Health -= b.GetDamage();
-                                bulletDestroyed = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-                else if (b.OwnerId == 3)
-                {
-                    foreach (var p in new[] { Player1, Player2 })
-                    {
-                        if (b.GetBounds().IntersectsWith(p.GetBounds()))
-                        {
-                            p.TakeDamage(b.GetDamage());
-                            bulletDestroyed = true;
-                            break;
-                        }
-                    }
-                }
-
-                if (bulletDestroyed)
-                {
-                    ActiveBullets.RemoveAt(i);
-                }
-            }
-
-            for (int i = Enemies.Count - 1; i >= 0; i--)
-            {
-                var enemy = Enemies[i];
-
-                if (enemy.Health <= 0)
-                {
-                    Enemies.RemoveAt(i);
-                    continue;
-                }
-
-                bool shootRequested = enemy.UpdatePosition(_map, Player1, Player2);
-                if (shootRequested)
-                {
-                    ExecuteEnemyShoot(enemy);
-                }
-
-                if (Player1.Health <= 0) Player1.Respawn();
-                if (Player2.Health <= 0) Player2.Respawn();
-            }
-        }
-
-
-        private void ExecuteEnemyShoot(Enemy enemy)
-        {
-            float centerX = enemy.Position.X;
-            float centerY = enemy.Position.Y;
-
-            var bullet = new Bullet(
-                centerX, centerY,
-                enemy.DirectionX, enemy.DirectionY,
-                enemy.CurrentBullet,
-                3
-            );
-
-            ActiveBullets.Add(bullet);
-        }
-
-    }
-}*/
-
-
-using Application.Services;
-using GameCore.Bullets;
-using GameCore.Characters;
-using GameCore.Factories;
-using GameCore.Map;
-using System;
-using System.Collections.Generic;
+using System.Linq;
+using System.Security.Principal;
 
 namespace Application.Game
 {
     public class GameController
     {
         private readonly LabyrinthMap _map;
-        private readonly EnemyFactory _enemyFactory;
+        private EnemyFactory _currentEnemyFactory;
+        private readonly List<Player> _allPlayers;
 
         private float _sessionTime = 0;
-        private const int TargetEnemyCount = 10;
+        private float _prizeSpawnTimer = 0;
+
+        private const int TargetEnemyCount = 3;
+        private int _totalSpawnedCount = 0;
+        private const int MaxEnemiesPerSession = 3;
+        private bool _canSpawnNewEnemies = true;
+
+        public bool IsGameOver { get; private set; } = false;
+
+        private int EliminationPoints = 100;
+
+        private const float PrizeInitialDelay = 3f;
+        private const float PrizeSpawnInterval = 10f;
+        private const float EnemySpawnDistance = 100f;
+
+        private const float Stage2Time = 60f;
+        private const float Stage3Time = 150f;
 
         public Player Player1 { get; }
         public Player Player2 { get; }
         public List<Bullet> ActiveBullets { get; } = new List<Bullet>();
+        public List<Prize> ActivePrizes { get; } = new List<Prize>();
         public List<Enemy> Enemies { get; } = new List<Enemy>();
+
+        public List<GameObject> GameObjects { get; } = new List<GameObject>();
 
         public GameController(LabyrinthMap map)
         {
             _map = map;
 
-            // Инициализация игроков
             var p1Pos = _map.ConvertToWorldCoordinates(1, 1);
-            Player1 = new Player(1, p1Pos.X, p1Pos.Y) { Size = 50 };
-
             var p2Pos = _map.ConvertToWorldCoordinates(_map.Width() - 2, _map.Height() - 2);
+
+            Player1 = new Player(1, p1Pos.X, p1Pos.Y) { Size = 50 };
             Player2 = new Player(2, p2Pos.X, p2Pos.Y) { Size = 50 };
 
-            _enemyFactory = new Type1EnemyFactory(_map, new List<Player> { Player1, Player2 });
+            Player1.OnDied += OnPlayerDied;
+            Player2.OnDied += OnPlayerDied;
 
-            FillLevelWithEnemies(1.0f);
+            AddEntity(Player1);
+            AddEntity(Player2);
+
+            _allPlayers = new List<Player> { Player1, Player2 };
+
+
+            UpdateFactory();
+            //_currentPrizeFactory = new PrizeFactory()
+
+            FillLevelWithEnemies();
         }
 
-        /// <summary>
-        /// Главный цикл обновления мира
-        /// </summary>
         public void UpdateWorld(float deltaTime)
         {
+            if (IsGameOver) return;
+
             _sessionTime += deltaTime;
-            float currentDifficulty = CalculateDifficulty();
+            _prizeSpawnTimer += deltaTime;
+
+            UpdatePlayers(deltaTime);
+            UpdateFactory();
+            UpdateSpawners();
 
             ProcessBullets();
-            ProcessEnemies(currentDifficulty);
-            ProcessPlayers();
+            ProcessEnemies();
+            ProcessPrizePickups(deltaTime);
 
-            // Поддерживаем популяцию врагов
-            if (Enemies.Count < TargetEnemyCount)
+            //MaintainEnemyCount();
+            if (_canSpawnNewEnemies)
             {
-                Enemies.Add(_enemyFactory.SpawnRandom(100f, currentDifficulty));
+                MaintainEnemyCount();
             }
         }
 
-        private float CalculateDifficulty()
+        private void UpdatePlayers(float deltaTime)
         {
-            // Каждые 2 минуты (120 сек) сложность растет на 1.0
-            return 1.0f + (_sessionTime / 120f);
+            Player1.UpdatePowerUps(deltaTime);
+            Player2.UpdatePowerUps(deltaTime);
+        }
+
+        private void UpdateSpawners()
+        {
+            if (_sessionTime > PrizeInitialDelay && _prizeSpawnTimer >= PrizeSpawnInterval)
+            {
+                SpawnPrizePair();
+                _prizeSpawnTimer = 0;
+            }
+        }
+
+        private void MaintainEnemyCount()
+        {
+            //if (Enemies.Count < TargetEnemyCount)
+            //{
+            //    AddEntity(_currentEnemyFactory.SpawnRandom(EnemySpawnDistance));
+            //}
+
+            if (_totalSpawnedCount >= MaxEnemiesPerSession)
+            {
+                _canSpawnNewEnemies = false;
+                return;
+            }
+
+            if (Enemies.Count < TargetEnemyCount)
+            {
+                AddEntity(_currentEnemyFactory.SpawnRandom(EnemySpawnDistance));
+                _totalSpawnedCount++;
+            }
+        }
+
+        private void FillLevelWithEnemies()
+        {
+            for (int i = 0; i < TargetEnemyCount; i++)
+            {
+                AddEntity(_currentEnemyFactory.SpawnRandom(EnemySpawnDistance));
+            }
+        }
+
+        private void UpdateFactory()
+        {
+            if (_sessionTime >= Stage3Time)
+            {
+                if (!(_currentEnemyFactory is ChaosEnemyFactory))
+                    _currentEnemyFactory = new ChaosEnemyFactory(_map, _allPlayers);
+            }
+            else if (_sessionTime >= Stage2Time)
+            {
+                if (!(_currentEnemyFactory is EliteEnemyFactory))
+                    _currentEnemyFactory = new EliteEnemyFactory(_map, _allPlayers);
+            }
+            else if (_currentEnemyFactory == null)
+            {
+                _currentEnemyFactory = new LightEnemyFactory(_map, _allPlayers);
+            }
+        }
+
+        private void SpawnPrizePair()
+        {
+            var pair = PrizeFactory.SpawnRandomPair(_map);
+
+            foreach (var prize in pair)
+            {
+                AddEntity(prize); 
+            }
+        }
+
+        private void ProcessPrizePickups(float deltaTime)
+        {
+            foreach (var prize in ActivePrizes.ToList())
+            {
+                prize.Update(deltaTime); 
+
+                if (prize.IsExpired)
+                {
+                    RemoveEntity(prize);
+                }
+                else
+                {
+                    CheckPickupForPlayer(Player1, prize);
+                    CheckPickupForPlayer(Player2, prize);
+                }
+            }
+        }
+
+        private void CheckPickupForPlayer(Player player, Prize prize)
+        {
+            if (player.GetBounds().IntersectsWith(prize.GetBounds()))
+            {
+                bool alreadyHasDecorator = false;
+
+                if (prize is ExplosivePrize)
+                    alreadyHasDecorator = BulletTools.IsDecoratorActive<ExplosiveAmmo>(player.CurrentBullet);
+                else if (prize is FastPrize)
+                    alreadyHasDecorator = BulletTools.IsDecoratorActive<FastAmmo>(player.CurrentBullet);
+
+                if (!alreadyHasDecorator)
+                {
+                    prize.ApplyEffect(player);
+                    RemoveEntity(prize);
+                }
+            }
+        }
+
+
+        public void AddEntity(GameObject entity)
+        {
+            if (entity == null) return;
+
+            GameObjects.Add(entity);
+
+            if (entity is Enemy enemy)
+            {
+                enemy.OnDied += OnEnemyDied;
+                Enemies.Add(enemy);
+            }
+            else if (entity is Bullet bullet)
+            {
+                ActiveBullets.Add(bullet);
+            }
+            else if (entity is Prize prize)
+            {
+                ActivePrizes.Add(prize);
+            }
+        }
+
+        public void RemoveEntity(GameObject entity)
+        {
+            if (entity == null) return;
+
+            GameObjects.Remove(entity);
+
+            if (entity is Enemy enemy)
+            {
+                enemy.OnDied -= OnEnemyDied;
+                Enemies.Remove(enemy);
+            }
+            else if (entity is Bullet bullet)
+            {
+                ActiveBullets.Remove(bullet);
+            }
+            else if (entity is Prize prize)
+            {
+                ActivePrizes.Remove(prize);
+            }
         }
 
         private void ProcessBullets()
         {
-            for (int i = ActiveBullets.Count - 1; i >= 0; i--)
+            foreach (var bullet in ActiveBullets.ToArray())
             {
-                var bullet = ActiveBullets[i];
                 bullet.Update();
 
-                // 1. Стены
                 var grid = _map.ConvertToTileCoordinates(bullet.Position);
-                if (_map.IsWall(grid.X, grid.Y))
-                {
-                    ActiveBullets.RemoveAt(i);
-                    continue;
-                }
 
-                // 2. Попадания
-                if (CheckBulletCollisions(bullet))
+                if (_map.IsWall(grid.X, grid.Y) || CheckBulletCollisions(bullet))
                 {
-                    ActiveBullets.RemoveAt(i);
+                    RemoveEntity(bullet);
                 }
             }
         }
 
         private bool CheckBulletCollisions(Bullet bullet)
         {
-            // Пули игроков (ID 1 и 2)
-            if (bullet.OwnerId == 1 || bullet.OwnerId == 2)
+            foreach (var player in _allPlayers)
             {
-                Player opponent = (bullet.OwnerId == 1) ? Player2 : Player1;
-                Player owner = (bullet.OwnerId == 1) ? Player1 : Player2;
-
-                // В оппонента
-                if (bullet.GetBounds().IntersectsWith(opponent.GetBounds()))
+                if (bullet.OwnerId != player.Id && bullet.GetBounds().IntersectsWith(player.GetBounds()))
                 {
-                    opponent.TakeDamage(bullet.GetDamage());
+                    player.TakeDamage(bullet);
                     return true;
                 }
+            }
 
-                // Во врагов
-                foreach (var enemy in Enemies)
+            if (bullet.OwnerId != 3)
+            {
+                foreach(var enemy in Enemies.ToArray())
                 {
                     if (bullet.GetBounds().IntersectsWith(enemy.GetBounds()))
                     {
-                        enemy.Health -= bullet.GetDamage();
-                        if (enemy.Health <= 0) owner.Score += 100; // Начисляем очки
+                        enemy.TakeDamage(bullet);
                         return true;
                     }
                 }
             }
-            // Пули врагов (ID 3)
-            else if (bullet.OwnerId == 3)
-            {
-                foreach (var player in new[] { Player1, Player2 })
-                {
-                    if (bullet.GetBounds().IntersectsWith(player.GetBounds()))
-                    {
-                        player.TakeDamage(bullet.GetDamage());
-                        return true;
-                    }
-                }
-            }
+
             return false;
         }
 
-        private void ProcessEnemies(float difficulty)
+        private void ProcessEnemies()
         {
             for (int i = Enemies.Count - 1; i >= 0; i--)
             {
                 var enemy = Enemies[i];
 
-                if (enemy.Health <= 0)
-                {
-                    Enemies.RemoveAt(i);
-                    continue;
-                }
-
                 if (enemy.UpdatePosition(_map, Player1, Player2))
                 {
-                    CreateEnemyBullet(enemy);
+                    CreateBullet(enemy);
                 }
             }
         }
 
-        private void ProcessPlayers()
+        private void OnEnemyDied(Unit victim, int killerId)
         {
-            if (Player1.Health <= 0) Player1.Respawn();
-            if (Player2.Health <= 0) Player2.Respawn();
+            if (killerId == 1)
+                Player1.Score += EliminationPoints;
+            else if (killerId == 2)
+                Player2.Score += EliminationPoints;
+
+            if (victim is Enemy enemy)
+            {
+                RemoveEntity(enemy);
+            }
+            if (!_canSpawnNewEnemies && Enemies.Count == 0)
+            {
+                IsGameOver = true;
+            }
         }
 
-        private void FillLevelWithEnemies(float difficulty)
+        private void OnPlayerDied(Unit victim, int killerId)
         {
-            for (int i = 0; i < TargetEnemyCount; i++)
-            {
-                Enemies.Add(_enemyFactory.SpawnRandom(25f, difficulty));
-            }
+            var deadPlayer = (Player)victim;
+            deadPlayer.Respawn();
+
         }
 
         public void HandleInput(GameInput input)
@@ -457,7 +331,7 @@ namespace Application.Game
         {
             if (input == fire)
             {
-                CreatePlayerBullet(player);
+                CreateBullet(player);
                 return;
             }
 
@@ -484,23 +358,22 @@ namespace Application.Game
             }
         }
 
-        private void CreatePlayerBullet(Player player)
+        private void CreateBullet(Unit unit)
         {
-            if (player.Ammunition <= 0) return;
-            player.Ammunition--;
-
-            ActiveBullets.Add(new Bullet(
-                player.Position.X, player.Position.Y,
-                player.DirectionX, player.DirectionY,
-                player.CurrentBullet, player.Id));
+            var bullet = unit.Shoot();
+            if (bullet != null)
+            {
+                AddEntity(bullet);
+            }
         }
 
-        private void CreateEnemyBullet(Enemy enemy)
+        public void Reset()
         {
-            ActiveBullets.Add(new Bullet(
-                enemy.Position.X, enemy.Position.Y,
-                enemy.DirectionX, enemy.DirectionY,
-                enemy.CurrentBullet, 3));
+            _sessionTime = 0;
+            _totalSpawnedCount = 0;
+            _canSpawnNewEnemies = true;
+            IsGameOver = false;
+            // Тут также стоит очистить списки Enemies, Bullets и сбросить очки игроков
         }
     }
 }

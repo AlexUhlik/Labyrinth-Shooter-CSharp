@@ -8,7 +8,7 @@ namespace GameCore.Bullets
 {
     public class FastAmmo : BulletDecorator
     {
-        public FastAmmo(IBullet bullet) : base(bullet)
+        public FastAmmo(IBullet bullet, float duration) : base(bullet, duration)
         {
         }
 

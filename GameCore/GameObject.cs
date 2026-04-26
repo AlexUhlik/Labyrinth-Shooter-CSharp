@@ -11,7 +11,7 @@ namespace GameCore
     {
         public Point Position { get; set; }
         public float Size { get; set; }
-        public int TextureId { get; set; }
+        //public int TextureId { get; set; }
         public bool IsActive { get; set; } = true;
 
         public GameObject(float x, float y, float size)

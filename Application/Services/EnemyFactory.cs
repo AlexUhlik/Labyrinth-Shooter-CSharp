@@ -17,9 +17,9 @@ namespace GameCore.Factories
             _players = players;
         }
 
-        public abstract Enemy CreateEnemy(float x, float y, float multiplier);
+        public abstract Enemy CreateEnemy(float x, float y);
 
-        public Enemy SpawnRandom(float minDistance, float multiplier)
+        public Enemy SpawnRandom(float minDistance)
         {
             while (true)
             {
@@ -44,7 +44,7 @@ namespace GameCore.Factories
 
                 if (isSafe)
                 {
-                    return CreateEnemy(pos.X, pos.Y, multiplier);
+                    return CreateEnemy(pos.X, pos.Y);
                 }
             }
         }

@@ -1,6 +1,7 @@
-﻿using System;
-using GameCore.Bullets;
+﻿using GameCore.Bullets;
 using GameCore.Map;
+using System;
+using System.Drawing;
 
 namespace GameCore.Characters
 {
@@ -15,6 +16,7 @@ namespace GameCore.Characters
         private int _shootTimer = 0;
 
         public IBullet CurrentBullet { get; set; }
+        public Color DisplayColor { get; set; } = Color.White;
 
         public Enemy(float x, float y) : base(x, y, 60)
         {
@@ -22,6 +24,18 @@ namespace GameCore.Characters
             Armor = 50;
             Speed = 2.0f;
             CurrentBullet = new StandartBullet();
+        }
+
+        public override Bullet Shoot()
+        {
+            return new Bullet(
+                Position.X,
+                Position.Y,
+                DirectionX,
+                DirectionY,
+                CurrentBullet,
+                3 
+            );
         }
 
         public bool UpdatePosition(LabyrinthMap map, Player p1, Player p2)

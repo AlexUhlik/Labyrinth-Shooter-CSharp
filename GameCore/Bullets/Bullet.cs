@@ -8,7 +8,8 @@ namespace GameCore.Bullets
 {
     public class Bullet : GameObject
     {
-        private readonly IBullet _stats;
+        //private readonly IBullet _stats;
+        public IBullet _stats { get; private set; }
         public float DirX { get; }
         public float DirY { get; }
         public int OwnerId { get; }

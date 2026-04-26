@@ -7,6 +7,9 @@ using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System;
+using GameCore.Items;
 
 namespace DrawLib.Graphics
 {
@@ -30,20 +33,34 @@ namespace DrawLib.Graphics
         private int _texFloor;
         private int _texEnemy;
         private int _texBullet;
+        private int _texAmmoPrize;
+        private int _texExplosivePrize;
+        private int _texFastPrize;
+        private int _texHealthPrize;
 
         public Painter(GameRenderer renderer)
         {
             _renderer = renderer;
         }
 
+        private string GetAssetPath(string fileName)
+        {
+            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Textures", fileName);
+        }
+
         public void LoadAssets()
         {
-            _texPlayer1 = _renderer.LoadTexture("Assets/player.png");
-            _texPlayer2 = _renderer.LoadTexture("Assets/magician.png");
-            _texWall = _renderer.LoadTexture("Assets/wall.png");
-            _texFloor = _renderer.LoadTexture("Assets/floor.png");
-            _texEnemy = _renderer.LoadTexture("Assets/enemy.png");
-            _texBullet = _renderer.LoadTexture("Assets/standartBullet.png");
+            _texPlayer1 = _renderer.LoadTexture(GetAssetPath("player.png"));
+            _texPlayer2 = _renderer.LoadTexture(GetAssetPath("magician.png"));
+            _texWall = _renderer.LoadTexture(GetAssetPath("wall.png"));
+            _texFloor = _renderer.LoadTexture(GetAssetPath("floor.png"));
+            _texEnemy = _renderer.LoadTexture(GetAssetPath("enemy.png"));
+            _texBullet = _renderer.LoadTexture(GetAssetPath("standartBullet.png"));
+
+            _texAmmoPrize = _renderer.LoadTexture(GetAssetPath("bullet.png"));
+            _texExplosivePrize = _renderer.LoadTexture(GetAssetPath("fastPrize.png"));
+            _texFastPrize = _renderer.LoadTexture(GetAssetPath("fastPrize.png"));
+            _texHealthPrize = _renderer.LoadTexture(GetAssetPath("medkit.png"));
         }
         public void SetupCamera(LabyrinthMap map)
         {
@@ -89,15 +106,49 @@ namespace DrawLib.Graphics
                     break;
 
                 case Enemy e:
-                    //_renderer.DrawSquare(e.Position.X, e.Position.Y, e.Size, e.Size, Color4.White, _texEnemy);
                     DrawEnemy(e);
                     break;
 
                 case Bullet b:
-                    _renderer.DrawSquare(b.Position.X, b.Position.Y, b.Size, b.Size, Color4.OrangeRed, _texBullet);
+                    //_renderer.DrawSquare(b.Position.X, b.Position.Y, b.Size, b.Size, Color4.OrangeRed, _texBullet);
+                    DrawBullet(b);
+                    break;
+
+                case Prize pr:
+                    Debug.WriteLine($"PRIZE!!!: {_texFastPrize}");
+                    //_renderer.DrawSquare(pr.Position.X, pr.Position.Y, pr.Size, pr.Size, Color4.Yellow);
+                    DrawPrize(pr);
                     break;
 
             }
+        }
+
+        public void DrawObjects(IEnumerable<GameObject> entities)
+        {
+            foreach (var entity in entities)
+            {
+                Draw(entity);
+            }
+        }
+
+        private Color4 GetBulletColor(IBullet bullet)
+        {
+            if (BulletTools.IsDecoratorActive<ExplosiveAmmo>(bullet))
+            {
+                return Color4.OrangeRed; 
+            }
+
+            if (BulletTools.IsDecoratorActive<FastAmmo>(bullet))
+            {
+                return Color4.Cyan; 
+            }
+            return Color4.White;
+        }
+
+        private void DrawBullet(Bullet b)
+        {
+            Color4 bulletColor = GetBulletColor(b._stats); 
+            _renderer.DrawSquare(b.Position.X, b.Position.Y, b.Size, b.Size, bulletColor, _texBullet);
         }
 
         private void DrawPlayer(Player p)
@@ -106,39 +157,104 @@ namespace DrawLib.Graphics
 
             Color4 pColor = Color4.White;
             _renderer.DrawSquare(p.Position.X, p.Position.Y, p.Size, p.Size, pColor, texId, p.Rotation);
-
-            float indicatorSize = p.Size / 3f;
-            var (indicatorX, indicatorY) = p.GetIndicatorPosition(indicatorSize);
-            //_renderer.DrawSquare(indicatorX, indicatorY, indicatorSize, indicatorSize, Color4.Yellow);
         }
 
-        public void DrawEnemy(Enemy enemy)
+        private int GetPrizeTexture(Prize prize)
         {
-            
+            Debug.WriteLine($"Проверяю приз: {prize.GetType().FullName}");
+            switch (prize)
+            {
+
+                case ExplosivePrize e:
+                    return _texExplosivePrize;
+
+                case AmmunitionPrize ap:
+                    return _texAmmoPrize;
+
+                case FastPrize fp:
+                    return _texFastPrize;
+
+                case HealthPrize hp:
+                    return _texHealthPrize;
+
+                default:
+                    return -1;
+            }
+
+        }
+
+        private void DrawPrize(Prize prize)
+        {
+            Color4 prizeColor = ToColor4(prize.DisplayColor);
+
+
+            if (prize.Age > prize.MaxLifetime * 0.65f)
+            {
+                bool isVisible = (int)(prize.Age * 5) % 2 == 0;
+                if (!isVisible) return;
+
+                float remainingTime = prize.MaxLifetime - prize.Age;
+                float warningPhaseDuration = prize.MaxLifetime * 0.35f;
+
+                prizeColor.A = remainingTime / warningPhaseDuration;
+            }
+
+            int texId = GetPrizeTexture(prize);
+            Debug.WriteLine($"------------------- приз: {texId}");
+            _renderer.DrawSquare(prize.Position.X, prize.Position.Y, prize.Size, prize.Size, prizeColor, texId);
+        }
+
+        //private void DrawPrize(Prize prize)
+
+        //{
+
+        //    if (prize.Age > prize.MaxLifetime * 0.65f)
+
+        //    {
+
+        //        bool isVisible = (int)(prize.Age * 5) % 2 == 0;
+
+
+
+        //        if (!isVisible) return;
+
+        //    }
+
+
+
+        //    //Color4 prizeColor = ToColor4(prize.DisplayColor);
+        //    Color4 prizeColor = Color4.White;
+
+        //    float alpha = 1.0f - (prize.Age / prize.MaxLifetime);
+
+        //    prizeColor.A = alpha;
+
+        //    int texId = GetPrizeTexture(prize);
+
+        //    _renderer.DrawSquare(prize.Position.X, prize.Position.Y, prize.Size, prize.Size, prizeColor);
+
+        //}
+
+        private void DrawEnemy(Enemy enemy)
+        {
+            Color4 enemyColor = ToColor4(enemy.DisplayColor);
+
             _renderer.DrawSquare(
                 enemy.Position.X,
                 enemy.Position.Y,
                 enemy.Size,
                 enemy.Size,
-                Color4.White,
+                enemyColor,
                 _texEnemy,
                 enemy.Rotation
             );
 
-            //DrawHealthBar(enemy);
             
         }
 
-        private void DrawHealthBar(Enemy e)
+        private Color4 ToColor4(System.Drawing.Color color)
         {
-            float barWidth = e.Size;
-            float barHeight = 5;
-            float healthPercent = (float)e.Health / 50; // 50 - макс. HP врага
-
-            // Фон полоски (черный)
-            _renderer.DrawSquare(e.Position.X, e.Position.Y - 10, barWidth, barHeight, Color4.Black);
-            // Сама жизнь (красная)
-            _renderer.DrawSquare(e.Position.X, e.Position.Y - 10, barWidth * healthPercent, barHeight, Color4.Red);
+            return new Color4(color.R / 255f, color.G / 255f, color.B / 255f, color.A / 255f);
         }
 
         private void DrawBase(LabyrinthMap map, int gridX, int gridY, Color4 color)

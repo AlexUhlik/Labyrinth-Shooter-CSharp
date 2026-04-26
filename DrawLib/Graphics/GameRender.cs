@@ -79,29 +79,6 @@ public class GameRenderer : IDisposable
         SetMatrix("projection", projection);
     }
 
-    //public void DrawSquare(float x, float y, float width, float height, Color4 color, int textureId = -1)
-    //{
-    //    GL.UseProgram(_shaderProgram);
-    //    GL.BindVertexArray(_vao);
-
-    //    GL.Uniform4(GL.GetUniformLocation(_shaderProgram, "uColor"), color);
-
-    //    if (textureId != -1)
-    //    {
-    //        GL.Uniform1(GL.GetUniformLocation(_shaderProgram, "uUseTexture"), 1);
-    //        GL.BindTexture(TextureTarget.Texture2D, textureId);
-    //    }
-    //    else
-    //    {
-    //        GL.Uniform1(GL.GetUniformLocation(_shaderProgram, "uUseTexture"), 0);
-    //    }
-
-    //    Matrix4 model = Matrix4.CreateScale(width, height, 1.0f) * Matrix4.CreateTranslation(x, y, 0.0f);
-    //    SetMatrix("model", model);
-
-    //    GL.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, 0);
-    //}
-
     public void DrawSquare(float x, float y, float width, float height, Color4 color, int textureId = -1, float rotation = 0f)
     {
         GL.UseProgram(_shaderProgram);
@@ -152,6 +129,9 @@ public class GameRenderer : IDisposable
 
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
 
         return id;
     }

@@ -41,7 +41,6 @@ namespace GameCore.Map
 
         public (int X, int Y) ConvertToTileCoordinates(Point position)
         {
-            // Используем Floor, чтобы 499.99 давало 0, а 500.01 давало 1
             int x = (int)Math.Floor(position.X / (float)TileSize);
             int y = (int)Math.Floor(position.Y / (float)TileSize);
             return (x, y);

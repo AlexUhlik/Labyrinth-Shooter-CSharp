@@ -34,21 +34,27 @@
             this.glControl1 = new OpenTK.GLControl();
             this.Player1Stats = new System.Windows.Forms.Panel();
             this.stats1 = new System.Windows.Forms.TableLayoutPanel();
-            this.lblP1Ammo = new System.Windows.Forms.TextBox();
+            this.P1Score = new System.Windows.Forms.Label();
+            this.P1Ammo = new System.Windows.Forms.Label();
             this.Player2Stats = new System.Windows.Forms.Panel();
             this.stats2 = new System.Windows.Forms.TableLayoutPanel();
-            this.lblP2Ammo = new System.Windows.Forms.TextBox();
-            this.lblP1Score = new System.Windows.Forms.TextBox();
+            this.P2Score = new System.Windows.Forms.Label();
+            this.P2Ammo = new System.Windows.Forms.Label();
             this.pbP1Armor = new LabyrinthGame.CustomProgressBar();
             this.pbP1Health = new LabyrinthGame.CustomProgressBar();
             this.pbP2Armor = new LabyrinthGame.CustomProgressBar();
             this.pbP2Health = new LabyrinthGame.CustomProgressBar();
+            this.pnlGameOver = new System.Windows.Forms.Panel();
+            this.lblWinner = new System.Windows.Forms.Label();
+            this.lblFinalScore = new System.Windows.Forms.Label();
+            this.ExitButton = new System.Windows.Forms.Button();
             this.tableLayoutPanel1.SuspendLayout();
             this.GameContainer.SuspendLayout();
             this.Player1Stats.SuspendLayout();
             this.stats1.SuspendLayout();
             this.Player2Stats.SuspendLayout();
             this.stats2.SuspendLayout();
+            this.pnlGameOver.SuspendLayout();
             this.SuspendLayout();
             // 
             // tableLayoutPanel1
@@ -72,6 +78,7 @@
             // GameContainer
             // 
             this.GameContainer.BackColor = System.Drawing.Color.DimGray;
+            this.GameContainer.Controls.Add(this.pnlGameOver);
             this.GameContainer.Controls.Add(this.glControl1);
             this.GameContainer.Dock = System.Windows.Forms.DockStyle.Fill;
             this.GameContainer.Location = new System.Drawing.Point(160, 0);
@@ -110,10 +117,10 @@
             // 
             this.stats1.ColumnCount = 1;
             this.stats1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.stats1.Controls.Add(this.lblP1Score, 0, 3);
+            this.stats1.Controls.Add(this.P1Score, 0, 3);
+            this.stats1.Controls.Add(this.P1Ammo, 0, 2);
             this.stats1.Controls.Add(this.pbP1Armor, 0, 0);
             this.stats1.Controls.Add(this.pbP1Health, 0, 1);
-            this.stats1.Controls.Add(this.lblP1Ammo, 0, 2);
             this.stats1.Dock = System.Windows.Forms.DockStyle.Top;
             this.stats1.Location = new System.Drawing.Point(15, 15);
             this.stats1.Margin = new System.Windows.Forms.Padding(25, 25, 3, 3);
@@ -126,15 +133,29 @@
             this.stats1.Size = new System.Drawing.Size(130, 94);
             this.stats1.TabIndex = 3;
             // 
-            // lblP1Ammo
+            // P1Score
             // 
-            this.lblP1Ammo.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.lblP1Ammo.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.792453F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.lblP1Ammo.Location = new System.Drawing.Point(3, 53);
-            this.lblP1Ammo.Name = "lblP1Ammo";
-            this.lblP1Ammo.ReadOnly = true;
-            this.lblP1Ammo.Size = new System.Drawing.Size(124, 19);
-            this.lblP1Ammo.TabIndex = 2;
+            this.P1Score.AutoSize = true;
+            this.P1Score.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.P1Score.Font = new System.Drawing.Font("ROG Fonts STRIX SCAR", 12.90566F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))));
+            this.P1Score.Location = new System.Drawing.Point(3, 71);
+            this.P1Score.Name = "P1Score";
+            this.P1Score.Size = new System.Drawing.Size(124, 23);
+            this.P1Score.TabIndex = 7;
+            this.P1Score.Text = "Score";
+            this.P1Score.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // P1Ammo
+            // 
+            this.P1Ammo.AutoSize = true;
+            this.P1Ammo.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.P1Ammo.Font = new System.Drawing.Font("ROG Fonts STRIX SCAR", 12.90566F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))));
+            this.P1Ammo.Location = new System.Drawing.Point(3, 50);
+            this.P1Ammo.Name = "P1Ammo";
+            this.P1Ammo.Size = new System.Drawing.Size(124, 21);
+            this.P1Ammo.TabIndex = 6;
+            this.P1Ammo.Text = "Ammo";
+            this.P1Ammo.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // Player2Stats
             // 
@@ -154,34 +175,43 @@
             this.stats2.ColumnCount = 1;
             this.stats2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.stats2.Controls.Add(this.pbP2Armor, 0, 0);
-            this.stats2.Controls.Add(this.lblP2Ammo, 0, 2);
             this.stats2.Controls.Add(this.pbP2Health, 0, 1);
+            this.stats2.Controls.Add(this.P2Score, 0, 3);
+            this.stats2.Controls.Add(this.P2Ammo, 0, 2);
             this.stats2.Dock = System.Windows.Forms.DockStyle.Top;
             this.stats2.Location = new System.Drawing.Point(15, 15);
             this.stats2.Name = "stats2";
-            this.stats2.RowCount = 3;
-            this.stats2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 30F));
-            this.stats2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 40F));
-            this.stats2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 30F));
-            this.stats2.Size = new System.Drawing.Size(130, 72);
+            this.stats2.RowCount = 4;
+            this.stats2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 20F));
+            this.stats2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 35F));
+            this.stats2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 22.5F));
+            this.stats2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 22.5F));
+            this.stats2.Size = new System.Drawing.Size(130, 94);
             this.stats2.TabIndex = 3;
             // 
-            // lblP2Ammo
+            // P2Score
             // 
-            this.lblP2Ammo.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.792453F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.lblP2Ammo.Location = new System.Drawing.Point(3, 52);
-            this.lblP2Ammo.Name = "lblP2Ammo";
-            this.lblP2Ammo.ReadOnly = true;
-            this.lblP2Ammo.Size = new System.Drawing.Size(68, 19);
-            this.lblP2Ammo.TabIndex = 2;
+            this.P2Score.AutoSize = true;
+            this.P2Score.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.P2Score.Font = new System.Drawing.Font("ROG Fonts STRIX SCAR", 12.90566F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.P2Score.Location = new System.Drawing.Point(3, 71);
+            this.P2Score.Name = "P2Score";
+            this.P2Score.Size = new System.Drawing.Size(124, 23);
+            this.P2Score.TabIndex = 4;
+            this.P2Score.Text = "Score";
+            this.P2Score.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
-            // lblP1Score
+            // P2Ammo
             // 
-            this.lblP1Score.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.lblP1Score.Location = new System.Drawing.Point(3, 74);
-            this.lblP1Score.Name = "lblP1Score";
-            this.lblP1Score.Size = new System.Drawing.Size(124, 20);
-            this.lblP1Score.TabIndex = 4;
+            this.P2Ammo.AutoSize = true;
+            this.P2Ammo.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.P2Ammo.Font = new System.Drawing.Font("ROG Fonts STRIX SCAR", 12.90566F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))));
+            this.P2Ammo.Location = new System.Drawing.Point(3, 50);
+            this.P2Ammo.Name = "P2Ammo";
+            this.P2Ammo.Size = new System.Drawing.Size(124, 21);
+            this.P2Ammo.TabIndex = 5;
+            this.P2Ammo.Text = "Ammo";
+            this.P2Ammo.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // pbP1Armor
             // 
@@ -214,7 +244,7 @@
             this.pbP2Armor.Location = new System.Drawing.Point(3, 3);
             this.pbP2Armor.MaxValue = 50;
             this.pbP2Armor.Name = "pbP2Armor";
-            this.pbP2Armor.Size = new System.Drawing.Size(124, 15);
+            this.pbP2Armor.Size = new System.Drawing.Size(124, 12);
             this.pbP2Armor.TabIndex = 2;
             this.pbP2Armor.Text = "customProgressBar1";
             this.pbP2Armor.Value = 0;
@@ -223,13 +253,55 @@
             // 
             this.pbP2Health.BarColor = System.Drawing.Color.GreenYellow;
             this.pbP2Health.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pbP2Health.Location = new System.Drawing.Point(3, 24);
+            this.pbP2Health.Location = new System.Drawing.Point(3, 21);
             this.pbP2Health.MaxValue = 100;
             this.pbP2Health.Name = "pbP2Health";
-            this.pbP2Health.Size = new System.Drawing.Size(124, 22);
+            this.pbP2Health.Size = new System.Drawing.Size(124, 26);
             this.pbP2Health.TabIndex = 3;
             this.pbP2Health.Text = "customProgressBar1";
             this.pbP2Health.Value = 0;
+            // 
+            // pnlGameOver
+            // 
+            this.pnlGameOver.BackColor = System.Drawing.SystemColors.ActiveCaption;
+            this.pnlGameOver.Controls.Add(this.ExitButton);
+            this.pnlGameOver.Controls.Add(this.lblFinalScore);
+            this.pnlGameOver.Controls.Add(this.lblWinner);
+            this.pnlGameOver.Location = new System.Drawing.Point(113, 86);
+            this.pnlGameOver.Name = "pnlGameOver";
+            this.pnlGameOver.Size = new System.Drawing.Size(249, 234);
+            this.pnlGameOver.TabIndex = 1;
+            this.pnlGameOver.Visible = false;
+            // 
+            // lblWinner
+            // 
+            this.lblWinner.AutoSize = true;
+            this.lblWinner.Font = new System.Drawing.Font("Impact", 23.77358F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.lblWinner.Location = new System.Drawing.Point(65, 39);
+            this.lblWinner.Name = "lblWinner";
+            this.lblWinner.Size = new System.Drawing.Size(124, 43);
+            this.lblWinner.TabIndex = 0;
+            this.lblWinner.Text = "Winner";
+            // 
+            // lblFinalScore
+            // 
+            this.lblFinalScore.AutoSize = true;
+            this.lblFinalScore.Font = new System.Drawing.Font("Consolas", 18.33962F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.lblFinalScore.Location = new System.Drawing.Point(45, 96);
+            this.lblFinalScore.Name = "lblFinalScore";
+            this.lblFinalScore.Size = new System.Drawing.Size(164, 32);
+            this.lblFinalScore.TabIndex = 1;
+            this.lblFinalScore.Text = "FinalScore";
+            // 
+            // ExitButton
+            // 
+            this.ExitButton.Font = new System.Drawing.Font("Segoe Print", 8.150944F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ExitButton.Location = new System.Drawing.Point(16, 166);
+            this.ExitButton.Name = "ExitButton";
+            this.ExitButton.Size = new System.Drawing.Size(75, 40);
+            this.ExitButton.TabIndex = 2;
+            this.ExitButton.Text = "Exit";
+            this.ExitButton.UseVisualStyleBackColor = true;
             // 
             // TestWindow
             // 
@@ -249,6 +321,8 @@
             this.Player2Stats.ResumeLayout(false);
             this.stats2.ResumeLayout(false);
             this.stats2.PerformLayout();
+            this.pnlGameOver.ResumeLayout(false);
+            this.pnlGameOver.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -262,12 +336,17 @@
         private System.Windows.Forms.Panel Player2Stats;
         private System.Windows.Forms.TableLayoutPanel stats1;
         private CustomProgressBar pbP1Armor;
-        private System.Windows.Forms.TextBox lblP1Ammo;
         private CustomProgressBar pbP1Health;
         private System.Windows.Forms.TableLayoutPanel stats2;
         private CustomProgressBar pbP2Armor;
-        private System.Windows.Forms.TextBox lblP2Ammo;
         private CustomProgressBar pbP2Health;
-        private System.Windows.Forms.TextBox lblP1Score;
+        private System.Windows.Forms.Label P2Score;
+        private System.Windows.Forms.Label P2Ammo;
+        private System.Windows.Forms.Label P1Ammo;
+        private System.Windows.Forms.Label P1Score;
+        private System.Windows.Forms.Panel pnlGameOver;
+        private System.Windows.Forms.Label lblWinner;
+        private System.Windows.Forms.Label lblFinalScore;
+        private System.Windows.Forms.Button ExitButton;
     }
 }

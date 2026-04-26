@@ -31,9 +31,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="OpenTK, Version=3.3.3.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
-      <HintPath>..\packages\OpenTK.3.3.3\lib\net20\OpenTK.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -47,22 +44,20 @@
   <ItemGroup>
     <Compile Include="Game\GameController.cs" />
     <Compile Include="Game\GameInput.cs" />
+    <Compile Include="Services\ChaosEnemyFactory.cs" />
     <Compile Include="Services\EnemyFactory.cs" />
+    <Compile Include="Services\EliteEnemyFactory.cs" />
     <Compile Include="Services\PrizeFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\MapGenerator.cs" />
     <Compile Include="Services\MapLoader.cs" />
-    <Compile Include="Services\Type1EnemyFactory.cs" />
+    <Compile Include="Services\LightEnemyFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\GameCore\GameCore.csproj">
       <Project>{04cbe1ab-2b6b-479b-93d7-d68759326ea7}</Project>
       <Name>GameCore</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="OpenTK.dll.config" />
-    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

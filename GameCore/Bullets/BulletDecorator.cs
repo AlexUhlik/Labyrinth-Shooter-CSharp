@@ -9,9 +9,28 @@ namespace GameCore.Bullets
     public abstract class BulletDecorator : IBullet
     {
         protected IBullet _bullet;
-        public BulletDecorator(IBullet bullet) 
+        public float TimeLeft { get; set; } = 0;
+        public bool IsExpired => TimeLeft <= 0;
+
+        public IBullet Inner
+        {
+            get => _bullet;
+            set => _bullet = value;
+        }
+
+        public BulletDecorator(IBullet bullet, float duration) 
         {
             _bullet = bullet;
+            TimeLeft = duration;
+        }
+
+        public void UpdateTime(float deltaTime)
+        {
+            TimeLeft -= deltaTime;
+            if (_bullet is BulletDecorator innerDecorator)
+            {
+                innerDecorator.UpdateTime(deltaTime);
+            }
         }
 
         public virtual int GetDamage()
