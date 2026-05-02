@@ -50,7 +50,6 @@
     <Compile Include="Services\PrizeFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\MapGenerator.cs" />
-    <Compile Include="Services\MapLoader.cs" />
     <Compile Include="Services\LightEnemyFactory.cs" />
   </ItemGroup>
   <ItemGroup>

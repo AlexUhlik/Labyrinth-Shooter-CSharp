@@ -2,22 +2,25 @@
 using GameCore.Map;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Application
+namespace Application.Services
 {
+    /// <summary>
+    /// Статический класс-фабрика для создания и случайного размещения призов на карте.
+    /// Централизует логику выбора типа бонуса и его координат.
+    /// </summary>
     public static class PrizeFactory
     {
-        private static Random rnd = new Random();
+        private static readonly Random rnd = new Random();
 
+        /// <summary> Хранит тип последнего созданного приза для предотвращения повторов. </summary>
         private static int _lastPrizeType = -1;
 
+        /// <summary>
+        /// Создает конкретный экземпляр приза на основе переданного индекса.
+        /// </summary>
         public static Prize CreatePrize(int prizeType, float x, float y)
         {
-            //int prizeType = rnd.Next(0, 4);
-
             switch (prizeType)
             {
                 case 0:
@@ -32,31 +35,25 @@ namespace Application
                     return new HealthPrize(x, y);
             }
         }
-        public static Prize SpawnRandom(LabyrinthMap _map, int? forceType = null)
-        {
-            int x, y;
-            do
-            {
-                x = rnd.Next(0, _map.Width());
-                y = rnd.Next(0, _map.Height());
-            } while (_map.IsWall(x, y));
 
-            var pos = _map.ConvertToWorldCoordinates(x, y);
-            return CreatePrize(forceType ?? rnd.Next(0, 4), pos.X, pos.Y);
-        }
-
+        /// <summary>
+        /// Создает пару одинаковых призов в симметричных точках карты.
+        /// Используется для поддержания баланса (например, в мультиплеере или для равномерного распределения).
+        /// </summary>
         public static List<Prize> SpawnRandomPair(LabyrinthMap map, int? forceType = null)
         {
             int width = map.Width();
             int height = map.Height();
 
             int x, y;
+            // Выбор случайной точки для первого приза
             do
             {
                 x = rnd.Next(0, width);
                 y = rnd.Next(0, height);
             } while (map.IsWall(x, y));
 
+            // Вычисление центрально-симметричных координат для второго приза
             int mx = width - 1 - x;
             int my = height - 1 - y;
 
@@ -70,10 +67,12 @@ namespace Application
             }
             else
             {
+                // Пул весов для генерации для более частого выпадания патронов
+                int[] pool = { 0, 1, 1, 1, 2, 3 };
                 do
                 {
-                    type = rnd.Next(0, 4);
-                } while (type == _lastPrizeType);
+                    type = pool[rnd.Next(pool.Length)];
+                } while (type == _lastPrizeType && type != 1); 
             }
 
             _lastPrizeType = type;

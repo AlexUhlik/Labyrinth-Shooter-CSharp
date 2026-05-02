@@ -1,71 +1,128 @@
 ﻿using GameCore.Bullets;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GameCore
 {
+    /// <summary>
+    /// Базовый абстрактный класс для всех живых сущностей в игре.
+    /// Определяет общую логику движения, получения урона и визуальной индикации попаданий.
+    /// </summary>
     public abstract class Unit : GameObject
     {
+        /// <summary> Текущие очки здоровья юнита. </summary>
         public int Health { get; set; }
+
+        /// <summary> Текущие очки брони юнита. </summary>
         public int Armor { get; set; }
+
+        /// <summary> Скорость перемещения юнита. </summary>
         public float Speed { get; set; }
+
+        /// <summary> Угол поворота юнита в радианах. </summary>
         public float Rotation { get; set; } = 0f;
+
+        // Вычисляемые свойства направления на основе угла поворота
         public float DirectionX => (float)Math.Cos(Rotation);
         public float DirectionY => (float)Math.Sin(Rotation);
 
+        /// <summary> Флаг, указывающий на то, что юнит находится в состоянии "вспышки" от урона. </summary>
+        public bool IsDamaged { get; private set; } = false;
+
+        private float _damageFlashTimeLeft = 0f;
+        private const float DamageFlashDuration = 0.1f;
+
+        /// <summary> Событие, вызываемое при смерти юнита. Передает объект юнита и ID убийцы. </summary>
         public event Action<Unit, int> OnDied;
 
+        /// <summary>
+        /// Инициализирует новый экземпляр юнита.
+        /// </summary>
+        /// <param name="x">Координата X.</param>
+        /// <param name="y">Координата Y.</param>
+        /// <param name="size">Размер коллизии.</param>
         public Unit(float x, float y, float size) : base(x, y, size)
         {
         }
 
+        /// <summary>
+        /// Изменяет позицию юнита на заданные смещения.
+        /// </summary>
         public void Move(float dx, float dy)
         {
             Position += new Point(dx, dy);
         }
 
+        /// <summary>
+        /// Устанавливает угол поворота юнита в сторону вектора (dx, dy).
+        /// </summary>
         public void SetDirection(float dx, float dy)
         {
             Rotation = (float)Math.Atan2(dy, dx);
         }
 
-        //public (float X, float Y) GetIndicatorPosition(float indicatorSize)
-        //{
-        //    float offset = Size / 2f - indicatorSize / 2f;
-        //    float indicatorX = Position.X + DirectionX * offset;
-        //    float indicatorY = Position.Y + DirectionY * offset;
-
-        //    return (indicatorX, indicatorY);
-        //}
-
+        /// <summary>
+        /// Выполняет расчет урона, распределяя его между броней и здоровьем.
+        /// </summary>
+        /// <param name="damage">Входящий урон.</param>
+        /// <param name="attackerId">Идентификатор атакующего.</param>
         public virtual void TakeDamage(int damage, int attackerId)
         {
+            // Сначала урон поглощается броней
             int armorDamage = Math.Min(damage, Armor);
-
-            int healtDamage = damage - armorDamage;
+            int healthDamage = damage - armorDamage;
 
             Armor -= armorDamage;
-            Health -= healtDamage;
+            Health -= healthDamage;
+
+            // Запуск визуального эффекта получения урона
+            StartDamageFlash();
 
             if (Health <= 0)
             {
                 Health = 0;
-                IsActive = false;
+                IsActive = false; 
                 OnDied?.Invoke(this, attackerId);
             }
         }
 
+        /// <summary>
+        /// Перегрузка метода получения урона, принимающая объект пули.
+        /// </summary>
+        /// <param name="bullet">Снаряд, попавший в юнита.</param>
         public void TakeDamage(Bullet bullet)
         {
             TakeDamage(bullet.GetDamage(), bullet.OwnerId);
         }
 
-        public abstract Bullet Shoot(); 
+        /// <summary>
+        /// Активирует флаг повреждения для визуального рендерера.
+        /// </summary>
+        private void StartDamageFlash()
+        {
+            IsDamaged = true;
+            _damageFlashTimeLeft = DamageFlashDuration;
+        }
+
+        /// <summary>
+        /// Обновляет таймер визуальной вспышки урона.
+        /// </summary>
+        /// <param name="deltaTime">Время шага игры.</param>
+        public void UpdateDamageFlash(float deltaTime)
+        {
+            if (!IsDamaged) return;
+
+            _damageFlashTimeLeft -= deltaTime;
+
+            if (_damageFlashTimeLeft <= 0)
+            {
+                IsDamaged = false;
+            }
+        }
+
+        /// <summary>
+        /// Абстрактный метод стрельбы, реализуемый в конкретных классах Player и Enemy.
+        /// </summary>
+        /// <returns>Созданный объект снаряда.</returns>
+        public abstract Bullet Shoot();
     }
-
-
 }

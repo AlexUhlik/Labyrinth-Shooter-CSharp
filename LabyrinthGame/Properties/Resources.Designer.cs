@@ -63,9 +63,19 @@ namespace LabyrinthGame.Properties {
         /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap images {
+        internal static System.Drawing.Bitmap KeysNew {
             get {
-                object obj = ResourceManager.GetObject("images", resourceCulture);
+                object obj = ResourceManager.GetObject("KeysNew", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap KeysNew2_3 {
+            get {
+                object obj = ResourceManager.GetObject("KeysNew2.3", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

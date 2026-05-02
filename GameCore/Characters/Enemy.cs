@@ -5,19 +5,34 @@ using System.Drawing;
 
 namespace GameCore.Characters
 {
+    /// <summary>
+    /// Представляет враждебную сущность.
+    /// Реализует алгоритмы патрулирования лабиринта и обнаружения игрока.
+    /// </summary>
     public class Enemy : Unit
     {
-        private static Random _rnd = new Random();
+        private static readonly Random _rnd = new Random();
 
-        private int _moveCooldown = 40;
+        // Константы поведения 
+        private const int MoveCooldownValue = 35;   // Задержка между сменой направления движения
+        private const int ShootCooldownValue = 30;  // Задержка между выстрелами
+        private const int VisionRange = 3;          // Дальность зрения в тайлах
+
         private int _moveTimer = 0;
-
-        private int _shootCooldown = 30;
         private int _shootTimer = 0;
 
+        /// <summary> Текущий тип снаряда врага. </summary>
         public IBullet CurrentBullet { get; set; }
+
+        /// <summary> Цвет для визуализации врага в зависимости от его типа. </summary>
         public Color DisplayColor { get; set; } = Color.White;
 
+        /// <summary> Количество очков, начисляемых игроку за уничтожение данного врага. </summary>
+        public int Score { get; set; }
+
+        /// <summary>
+        /// Создает экземпляр врага в указанных координатах.
+        /// </summary>
         public Enemy(float x, float y) : base(x, y, 60)
         {
             Health = 80;
@@ -26,114 +41,146 @@ namespace GameCore.Characters
             CurrentBullet = new StandartBullet();
         }
 
+        /// <summary>
+        /// Создает объект пули.
+        /// </summary>
         public override Bullet Shoot()
         {
-            return new Bullet(
-                Position.X,
-                Position.Y,
-                DirectionX,
-                DirectionY,
-                CurrentBullet,
-                3 
-            );
+            return new Bullet(Position.X, Position.Y, DirectionX, DirectionY, CurrentBullet, 3);
         }
 
-        public bool UpdatePosition(LabyrinthMap map, Player p1, Player p2)
+        /// <summary>
+        /// Основной цикл обновления логики врага.
+        /// </summary>
+        /// <returns>True, если враг готов произвести выстрел.</returns>
+        public bool UpdatePosition(LabyrinthMap map, Player p1, Player p2, float deltaTime)
         {
-            bool wantsToShoot = false;
+            UpdateDamageFlash(deltaTime);
 
-            bool seesPlayer = CanSeeTarget(p1, map) || CanSeeTarget(p2, map);
-
-            if (seesPlayer)
+            // Если хотя бы один игрок в зоне видимости — переходим в режим атаки
+            if (CanSeeTarget(p1, map) || CanSeeTarget(p2, map))
             {
-                _shootTimer++;
-
-                if (_shootTimer >= _shootCooldown)
-                {
-                    wantsToShoot = true;
-                    _shootTimer = 0;
-                }
-
-                return wantsToShoot;
+                _moveTimer = 0; // Остановка при стрельбе
+                return UpdateShooting();
             }
-            else
+
+            // Иначе продолжаем патрулирование
+            _shootTimer = 0;
+            UpdatePatrolling(map);
+            return false;
+        }
+
+        /// <summary>
+        /// Логика накопления заряда для выстрела.
+        /// </summary>
+        private bool UpdateShooting()
+        {
+            _shootTimer++;
+            if (_shootTimer >= ShootCooldownValue)
             {
                 _shootTimer = 0;
-
-                _moveTimer++;
-                if (_moveTimer >= _moveCooldown)
-                {
-                    _moveTimer = 0;
-
-                    int dir = _rnd.Next(4);
-                    float dx = 0, dy = 0;
-
-                    if (dir == 0) dy = LabyrinthMap.TileSize;
-                    else if (dir == 1) dy = -LabyrinthMap.TileSize;
-                    else if (dir == 2) dx = -LabyrinthMap.TileSize;
-                    else if (dir == 3) dx = LabyrinthMap.TileSize;
-
-                    var nextPos = new Point(Position.X + dx, Position.Y + dy);
-                    var gridCoords = map.ConvertToTileCoordinates(nextPos);
-
-                    if (!map.IsWall(gridCoords.X, gridCoords.Y))
-                    {
-                        SetDirection(dx, dy);
-                        Move(dx, dy);
-                    }
-                }
+                return true;
             }
-
-            return wantsToShoot;
+            return false;
         }
 
+        /// <summary>
+        /// Алгоритм случайного перемещения по лабиринту.
+        /// </summary>
+        private void UpdatePatrolling(LabyrinthMap map)
+        {
+            _moveTimer++;
+            if (_moveTimer < MoveCooldownValue) return;
+
+            _moveTimer = 0;
+
+            var (dx, dy) = GetRandomDirection();
+            var nextPos = new Point(Position.X + dx, Position.Y + dy);
+            var grid = map.ConvertToTileCoordinates(nextPos);
+
+            // Проверка коллизии с картой перед перемещением
+            if (!map.IsWall(grid.X, grid.Y))
+            {
+                SetDirection(dx, dy);
+                Move(dx, dy);
+            }
+        }
+
+        /// <summary>
+        /// Генерирует случайный вектор направления, кратный размеру тайла.
+        /// </summary>
+        private (int dx, int dy) GetRandomDirection()
+        {
+            int dir = _rnd.Next(4);
+            int dx = 0;
+            int dy = 0;
+
+            switch (dir)
+            {
+                case 0: dy = LabyrinthMap.TileSize; break;  // Вниз
+                case 1: dy = -LabyrinthMap.TileSize; break; // Вверх
+                case 2: dx = -LabyrinthMap.TileSize; break; // Влево
+                case 3: dx = LabyrinthMap.TileSize; break;  // Вправо
+            }
+            return (dx, dy);
+        }
+
+        /// <summary>
+        /// Алгоритм проверки прямой видимости.
+        /// Проверяет отсутствие стен между врагом и игроком по осям X или Y.
+        /// </summary>
         private bool CanSeeTarget(Player target, LabyrinthMap map)
         {
-            if (target.Health <= 0) return false;
+            if (target == null || target.Health <= 0) return false;
 
-            var enemyTile = map.ConvertToTileCoordinates(Position);
-            var targetTile = map.ConvertToTileCoordinates(target.Position);
+            var start = map.ConvertToTileCoordinates(Position);
+            var end = map.ConvertToTileCoordinates(target.Position);
 
-            if (enemyTile.X == targetTile.X && enemyTile.Y == targetTile.Y) return true;
+            // Если стоим на одной клетке
+            if (start.X == end.X && start.Y == end.Y) return true;
 
-            int maxDistance = 5;
-            if (Math.Abs(enemyTile.X - targetTile.X) > maxDistance ||
-                Math.Abs(enemyTile.Y - targetTile.Y) > maxDistance) return false;
+            // Проверка дистанции зрения
+            if (Math.Abs(start.X - end.X) > VisionRange || Math.Abs(start.Y - end.Y) > VisionRange)
+                return false;
 
-            if (Math.Abs(DirectionX) > 0.01f && Math.Abs(DirectionY) < 0.01f)
+            bool onSameX = start.X == end.X;
+            bool onSameY = start.Y == end.Y;
+
+            // Проверка по горизонтали
+            if (onSameY && Math.Abs(DirectionX) > 0.01f)
             {
-                if (enemyTile.Y == targetTile.Y) 
+                // Игрок должен быть в той же стороне, куда смотрит враг
+                if (Math.Sign(end.X - start.X) == Math.Sign(DirectionX))
                 {
-                    int deltaX = targetTile.X - enemyTile.X;
-                    if (Math.Sign(deltaX) == Math.Sign(DirectionX))
-                    {
-                        int minX = Math.Min(enemyTile.X, targetTile.X);
-                        int maxX = Math.Max(enemyTile.X, targetTile.X);
-                        for (int x = minX; x <= maxX; x++)
-                            if (map.IsWall(x, enemyTile.Y)) return false;
-
-                        return true;
-                    }
+                    return !IsWallBetween(start.X, end.X, start.Y, true, map);
                 }
             }
 
-            if (Math.Abs(DirectionY) > 0.01f && Math.Abs(DirectionX) < 0.01f)
+            // Проверка по вертикали
+            if (onSameX && Math.Abs(DirectionY) > 0.01f)
             {
-                if (enemyTile.X == targetTile.X) 
+                if (Math.Sign(end.Y - start.Y) == Math.Sign(DirectionY))
                 {
-                    int deltaY = targetTile.Y - enemyTile.Y;
-                    if (Math.Sign(deltaY) == Math.Sign(DirectionY))
-                    {
-                        int minY = Math.Min(enemyTile.Y, targetTile.Y);
-                        int maxY = Math.Max(enemyTile.Y, targetTile.Y);
-                        for (int y = minY; y <= maxY; y++)
-                            if (map.IsWall(enemyTile.X, y)) return false;
-
-                        return true;
-                    }
+                    return !IsWallBetween(start.Y, end.Y, start.X, false, map);
                 }
             }
 
+            return false;
+        }
+
+        /// <summary>
+        /// Итерирует по линии между двумя точками для обнаружения препятствий.
+        /// </summary>
+        private bool IsWallBetween(int start, int end, int constant, bool isHorizontal, LabyrinthMap map)
+        {
+            int min = Math.Min(start, end);
+            int max = Math.Max(start, end);
+
+            for (int i = min; i <= max; i++)
+            {
+                bool hitWall = isHorizontal ? map.IsWall(i, constant) : map.IsWall(constant, i);
+                if (hitWall) return true;
+            }
             return false;
         }
     }

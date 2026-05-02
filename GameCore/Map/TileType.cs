@@ -1,14 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GameCore.Map
 {
+    /// <summary>
+    /// Определяет типы поверхностей (тайлов) в игровом мире.
+    /// Используется для отрисовки карты и расчета столкновений (коллизий).
+    /// </summary>
     public enum TileType
     {
+        /// <summary> Свободное пространство, доступное для перемещения юнитов и полета снарядов. </summary>
         Empty,
+
+        /// <summary> Стена или препятствие, блокирующее перемещение и полет снарядов. </summary>
         Wall
     }
 }

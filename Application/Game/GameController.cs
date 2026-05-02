@@ -2,74 +2,110 @@
 using GameCore;
 using GameCore.Bullets;
 using GameCore.Characters;
-using GameCore.Factories;
 using GameCore.Items;
 using GameCore.Map;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Principal;
 
 namespace Application.Game
 {
+    /// <summary>
+    /// Основной игровой контроллер, управляющий жизненным циклом игрового сеанса.
+    /// Отвечает за спавн сущностей, обработку коллизий, обновление состояний и соблюдение игровых правил.
+    /// </summary>
     public class GameController
     {
+        // Константы игрового баланса
+        private const int TargetEnemyCount = 15;        // Одновременное кол-во врагов на карте
+        private const int EnemiesPerStage = 10;         // Сколько врагов нужно создать для перехода к след. фабрике
+        private const float PrizeInitialDelay = 7f;      // Задержка перед появлением первых призов
+        private const float PrizeSpawnInterval = 7f;     // Интервал появления новых призов
+        private const float EnemySpawnDistance = 200f;   // Минимальная дистанция спавна врага от игрока
+
+        // Состояние прогрессии
+        private int _stage1Spawned = 0;
+        private int _stage2Spawned = 0;
+        private int _stage3Spawned = 0;
+
         private readonly LabyrinthMap _map;
-        private EnemyFactory _currentEnemyFactory;
         private readonly List<Player> _allPlayers;
+        private EnemyFactory _currentEnemyFactory;
 
-        private float _sessionTime = 0;
-        private float _prizeSpawnTimer = 0;
+        private float _sessionTime;
+        private float _prizeSpawnTimer;
+        private bool _canSpawnNewEnemies;
 
-        private const int TargetEnemyCount = 3;
-        private int _totalSpawnedCount = 0;
-        private const int MaxEnemiesPerSession = 3;
-        private bool _canSpawnNewEnemies = true;
+        /// <summary> Флаг завершения игры. </summary>
+        public bool IsGameOver { get; private set; }
 
-        public bool IsGameOver { get; private set; } = false;
-
-        private int EliminationPoints = 100;
-
-        private const float PrizeInitialDelay = 3f;
-        private const float PrizeSpawnInterval = 10f;
-        private const float EnemySpawnDistance = 100f;
-
-        private const float Stage2Time = 60f;
-        private const float Stage3Time = 150f;
-
+        /// <summary> Первый игрок (управление WASD). </summary>
         public Player Player1 { get; }
+
+        /// <summary> Второй игрок (управление стрелками). </summary>
         public Player Player2 { get; }
+
+        // Списки активных объектов
         public List<Bullet> ActiveBullets { get; } = new List<Bullet>();
         public List<Prize> ActivePrizes { get; } = new List<Prize>();
         public List<Enemy> Enemies { get; } = new List<Enemy>();
 
+        /// <summary> Общий список всех игровых объектов для отрисовки. </summary>
         public List<GameObject> GameObjects { get; } = new List<GameObject>();
 
+        /// <summary>
+        /// Конструктор контроллера. Инициализирует игроков и устанавливает начальное состояние мира.
+        /// </summary>
+        /// <param name="map">Карта лабиринта.</param>
         public GameController(LabyrinthMap map)
         {
             _map = map;
-
             var p1Pos = _map.ConvertToWorldCoordinates(1, 1);
             var p2Pos = _map.ConvertToWorldCoordinates(_map.Width() - 2, _map.Height() - 2);
 
-            Player1 = new Player(1, p1Pos.X, p1Pos.Y) { Size = 50 };
-            Player2 = new Player(2, p2Pos.X, p2Pos.Y) { Size = 50 };
-
-            Player1.OnDied += OnPlayerDied;
-            Player2.OnDied += OnPlayerDied;
-
-            AddEntity(Player1);
-            AddEntity(Player2);
+            Player1 = new Player(1, p1Pos.X, p1Pos.Y);
+            Player2 = new Player(2, p2Pos.X, p2Pos.Y);
 
             _allPlayers = new List<Player> { Player1, Player2 };
+            StartGame();
+        }
 
+        /// <summary>
+        /// Сбрасывает все игровые параметры и подготавливает сущности к началу новой игры.
+        /// </summary>
+        private void StartGame()
+        {
+            _sessionTime = 0;
+            _prizeSpawnTimer = 0;
+            _stage1Spawned = 0;
+            _stage2Spawned = 0;
+            _stage3Spawned = 0;
+            _canSpawnNewEnemies = true;
+            IsGameOver = false;
+
+            foreach (var e in GameObjects.ToList())
+            {
+                RemoveEntity(e);
+            }
+
+            foreach (var player in _allPlayers)
+            {
+                player.Respawn();
+                player.Armor = Player.DefaultArmor;
+                player.Score = 0;
+                player.OnDied -= OnPlayerDied;
+                player.OnDied += OnPlayerDied;
+                AddEntity(player);
+            }
 
             UpdateFactory();
-            //_currentPrizeFactory = new PrizeFactory()
-
             FillLevelWithEnemies();
         }
 
+        /// <summary>
+        /// Основной метод обновления игрового мира. Вызывается каждый кадр.
+        /// </summary>
+        /// <param name="deltaTime">Время, прошедшее с последнего кадра.</param>
         public void UpdateWorld(float deltaTime)
         {
             if (IsGameOver) return;
@@ -80,24 +116,28 @@ namespace Application.Game
             UpdatePlayers(deltaTime);
             UpdateFactory();
             UpdateSpawners();
-
             ProcessBullets();
-            ProcessEnemies();
+            ProcessEnemies(deltaTime);
             ProcessPrizePickups(deltaTime);
 
-            //MaintainEnemyCount();
             if (_canSpawnNewEnemies)
             {
                 MaintainEnemyCount();
             }
         }
 
+        /// <summary>
+        /// Обновляет логику состояния игроков.
+        /// </summary>
         private void UpdatePlayers(float deltaTime)
         {
-            Player1.UpdatePowerUps(deltaTime);
-            Player2.UpdatePowerUps(deltaTime);
+            Player1.Update(deltaTime);
+            Player2.Update(deltaTime);
         }
 
+        /// <summary>
+        /// Управляет временем появления бонусов в мире.
+        /// </summary>
         private void UpdateSpawners()
         {
             if (_sessionTime > PrizeInitialDelay && _prizeSpawnTimer >= PrizeSpawnInterval)
@@ -107,68 +147,78 @@ namespace Application.Game
             }
         }
 
+        /// <summary>
+        /// Поддерживает необходимое количество врагов на карте, учитывая текущую сложность.
+        /// </summary>
         private void MaintainEnemyCount()
         {
-            //if (Enemies.Count < TargetEnemyCount)
-            //{
-            //    AddEntity(_currentEnemyFactory.SpawnRandom(EnemySpawnDistance));
-            //}
-
-            if (_totalSpawnedCount >= MaxEnemiesPerSession)
-            {
-                _canSpawnNewEnemies = false;
-                return;
-            }
-
+            if (!_canSpawnNewEnemies) return;
             if (Enemies.Count < TargetEnemyCount)
             {
                 AddEntity(_currentEnemyFactory.SpawnRandom(EnemySpawnDistance));
-                _totalSpawnedCount++;
+                if (_currentEnemyFactory is LightEnemyFactory) _stage1Spawned++;
+                else if (_currentEnemyFactory is EliteEnemyFactory) _stage2Spawned++;
+                else if (_currentEnemyFactory is ChaosEnemyFactory) _stage3Spawned++;
             }
         }
 
+        /// <summary>
+        /// Первичное заполнение уровня врагами до целевого показателя.
+        /// </summary>
         private void FillLevelWithEnemies()
         {
-            for (int i = 0; i < TargetEnemyCount; i++)
+            while (Enemies.Count < TargetEnemyCount && _canSpawnNewEnemies)
             {
-                AddEntity(_currentEnemyFactory.SpawnRandom(EnemySpawnDistance));
+                MaintainEnemyCount();
             }
         }
 
+        /// <summary>
+        /// Выбирает подходящую фабрику врагов в зависимости от прогресса игрока по этапам.
+        /// </summary>
         private void UpdateFactory()
         {
-            if (_sessionTime >= Stage3Time)
+            if (_stage1Spawned < EnemiesPerStage)
             {
-                if (!(_currentEnemyFactory is ChaosEnemyFactory))
-                    _currentEnemyFactory = new ChaosEnemyFactory(_map, _allPlayers);
+                if (!(_currentEnemyFactory is LightEnemyFactory))
+                    _currentEnemyFactory = new LightEnemyFactory(_map, _allPlayers);
             }
-            else if (_sessionTime >= Stage2Time)
+            else if (_stage2Spawned < EnemiesPerStage)
             {
                 if (!(_currentEnemyFactory is EliteEnemyFactory))
                     _currentEnemyFactory = new EliteEnemyFactory(_map, _allPlayers);
             }
-            else if (_currentEnemyFactory == null)
+            else if (_stage3Spawned < EnemiesPerStage)
             {
-                _currentEnemyFactory = new LightEnemyFactory(_map, _allPlayers);
+                if (!(_currentEnemyFactory is ChaosEnemyFactory))
+                    _currentEnemyFactory = new ChaosEnemyFactory(_map, _allPlayers);
+            }
+            else
+            {
+                _canSpawnNewEnemies = false;
             }
         }
 
+        /// <summary>
+        /// Генерирует пару случайных призов на карте.
+        /// </summary>
         private void SpawnPrizePair()
         {
             var pair = PrizeFactory.SpawnRandomPair(_map);
-
             foreach (var prize in pair)
             {
-                AddEntity(prize); 
+                AddEntity(prize);
             }
         }
 
+        /// <summary>
+        /// Обрабатывает время жизни призов и их проверку на столкновение с игроками.
+        /// </summary>
         private void ProcessPrizePickups(float deltaTime)
         {
             foreach (var prize in ActivePrizes.ToList())
             {
-                prize.Update(deltaTime); 
-
+                prize.Update(deltaTime);
                 if (prize.IsExpired)
                 {
                     RemoveEntity(prize);
@@ -181,12 +231,14 @@ namespace Application.Game
             }
         }
 
+        /// <summary>
+        /// Проверяет, подобрал ли конкретный игрок конкретный приз.
+        /// </summary>
         private void CheckPickupForPlayer(Player player, Prize prize)
         {
             if (player.GetBounds().IntersectsWith(prize.GetBounds()))
             {
                 bool alreadyHasDecorator = false;
-
                 if (prize is ExplosivePrize)
                     alreadyHasDecorator = BulletTools.IsDecoratorActive<ExplosiveAmmo>(player.CurrentBullet);
                 else if (prize is FastPrize)
@@ -200,13 +252,13 @@ namespace Application.Game
             }
         }
 
-
+        /// <summary>
+        /// Регистрирует новую сущность в соответствующих списках игрового мира.
+        /// </summary>
         public void AddEntity(GameObject entity)
         {
             if (entity == null) return;
-
             GameObjects.Add(entity);
-
             if (entity is Enemy enemy)
             {
                 enemy.OnDied += OnEnemyDied;
@@ -222,12 +274,13 @@ namespace Application.Game
             }
         }
 
+        /// <summary>
+        /// Удаляет сущность из игрового мира.
+        /// </summary>
         public void RemoveEntity(GameObject entity)
         {
             if (entity == null) return;
-
             GameObjects.Remove(entity);
-
             if (entity is Enemy enemy)
             {
                 enemy.OnDied -= OnEnemyDied;
@@ -243,14 +296,15 @@ namespace Application.Game
             }
         }
 
+        /// <summary>
+        /// Обновляет позиции пуль и обрабатывает столкновения со стенами и юнитами.
+        /// </summary>
         private void ProcessBullets()
         {
             foreach (var bullet in ActiveBullets.ToArray())
             {
                 bullet.Update();
-
                 var grid = _map.ConvertToTileCoordinates(bullet.Position);
-
                 if (_map.IsWall(grid.X, grid.Y) || CheckBulletCollisions(bullet))
                 {
                     RemoveEntity(bullet);
@@ -258,6 +312,9 @@ namespace Application.Game
             }
         }
 
+        /// <summary>
+        /// Выполняет детальную проверку столкновения пули с игроками или врагами.
+        /// </summary>
         private bool CheckBulletCollisions(Bullet bullet)
         {
             foreach (var player in _allPlayers)
@@ -269,9 +326,9 @@ namespace Application.Game
                 }
             }
 
-            if (bullet.OwnerId != 3)
+            if (bullet.OwnerId != 3) 
             {
-                foreach(var enemy in Enemies.ToArray())
+                foreach (var enemy in Enemies.ToArray())
                 {
                     if (bullet.GetBounds().IntersectsWith(enemy.GetBounds()))
                     {
@@ -280,58 +337,72 @@ namespace Application.Game
                     }
                 }
             }
-
             return false;
         }
 
-        private void ProcessEnemies()
+        /// <summary>
+        /// Обновляет позицию врагов и обрабатывает их стрельбу.
+        /// </summary>
+        private void ProcessEnemies(float deltaTime)
         {
             for (int i = Enemies.Count - 1; i >= 0; i--)
             {
                 var enemy = Enemies[i];
-
-                if (enemy.UpdatePosition(_map, Player1, Player2))
+                if (enemy.UpdatePosition(_map, Player1, Player2, deltaTime))
                 {
                     CreateBullet(enemy);
                 }
             }
         }
 
+        /// <summary>
+        /// Обработчик события смерти врага. Начисляет очки и проверяет условие победы.
+        /// </summary>
         private void OnEnemyDied(Unit victim, int killerId)
         {
-            if (killerId == 1)
-                Player1.Score += EliminationPoints;
-            else if (killerId == 2)
-                Player2.Score += EliminationPoints;
+            if (killerId == 1) Player1.Score += ((Enemy)victim).Score;
+            else if (killerId == 2) Player2.Score += ((Enemy)victim).Score;
 
             if (victim is Enemy enemy)
             {
                 RemoveEntity(enemy);
             }
+
             if (!_canSpawnNewEnemies && Enemies.Count == 0)
             {
                 IsGameOver = true;
             }
         }
 
+        /// <summary>
+        /// Обработчик события смерти игрока. Вызывает немедленный респавн.
+        /// </summary>
         private void OnPlayerDied(Unit victim, int killerId)
         {
-            var deadPlayer = (Player)victim;
-            deadPlayer.Respawn();
-
+            ((Player)victim).Respawn();
         }
 
+        /// <summary>
+        /// Распределяет входящий ввод между первым и вторым игроком.
+        /// </summary>
         public void HandleInput(GameInput input)
         {
             ProcessPlayerInput(Player1, input, GameInput.W, GameInput.S, GameInput.A, GameInput.D, GameInput.Space);
             ProcessPlayerInput(Player2, input, GameInput.Up, GameInput.Down, GameInput.Left, GameInput.Right, GameInput.Enter);
         }
 
+        /// <summary>
+        /// Обрабатывает конкретную клавишу для указанного игрока (движение или стрельба).
+        /// </summary>
         private void ProcessPlayerInput(Player player, GameInput input, GameInput up, GameInput down, GameInput left, GameInput right, GameInput fire)
         {
             if (input == fire)
             {
-                CreateBullet(player);
+                if (player.CanShoot)
+                {
+                    CreateBullet(player);
+                    player.ResetShootTimer();
+                }
                 return;
             }
 
@@ -344,7 +415,6 @@ namespace Application.Game
             if (dx != 0 || dy != 0)
             {
                 bool isTurning = (Math.Sign(dx) != (int)player.DirectionX || Math.Sign(dy) != (int)player.DirectionY);
-
                 if (isTurning)
                 {
                     player.SetDirection(dx, dy);
@@ -358,22 +428,23 @@ namespace Application.Game
             }
         }
 
+        /// <summary>
+        /// Создает пулю от указанного юнита и добавляет её в мир.
+        /// </summary>
         private void CreateBullet(Unit unit)
         {
             var bullet = unit.Shoot();
-            if (bullet != null)
-            {
-                AddEntity(bullet);
-            }
+            if (bullet != null) AddEntity(bullet);
         }
 
-        public void Reset()
-        {
-            _sessionTime = 0;
-            _totalSpawnedCount = 0;
-            _canSpawnNewEnemies = true;
-            IsGameOver = false;
-            // Тут также стоит очистить списки Enemies, Bullets и сбросить очки игроков
-        }
+        /// <summary>
+        /// Принудительно завершает текущую игру.
+        /// </summary>
+        public void FinishGameManually() => IsGameOver = true;
+
+        /// <summary>
+        /// Публичный метод для перезапуска игры.
+        /// </summary>
+        public void Reset() => StartGame();
     }
 }

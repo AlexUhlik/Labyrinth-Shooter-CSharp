@@ -1,16 +1,30 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Game
 {
+    /// <summary>
+    /// Перечисление всех поддерживаемых игровых команд ввода.
+    /// Используется для абстрагирования конкретных клавиш клавиатуры от логики управления персонажем.
+    /// </summary>
     public enum GameInput
     {
-        Up, Down, Left, Right,
-        W, A, S, D,
-        Enter, Space,
+        // Навигационные клавиши (Стрелки)
+        Up,
+        Down,
+        Left,
+        Right,
+
+        // Классическая раскладка управления (WASD)
+        W,
+        A,
+        S,
+        D,
+
+        // Функциональные клавиши
+        Enter,
+        Space,
+
+        /// <summary> Состояние отсутствия ввода. </summary>
         None
     }
 }
