@@ -69,7 +69,6 @@ namespace Application.Services
                 }
             }
 
-            // Удаляем 12 дополнительных пар стен для создания нелинейных маршрутов.
             RemoveRandomWallsSymmetrically(grid, width, height, 12);
 
             grid[width / 2, height / 2] = TileType.Empty;

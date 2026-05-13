@@ -299,6 +299,7 @@ namespace Application.Game
         /// <summary>
         /// Обновляет позиции пуль и обрабатывает столкновения со стенами и юнитами.
         /// </summary>
+
         private void ProcessBullets()
         {
             foreach (var bullet in ActiveBullets.ToArray())
@@ -311,6 +312,22 @@ namespace Application.Game
                 }
             }
         }
+
+        //private void ProcessBullets()
+        //{
+        //    foreach (var bullet in ActiveBullets.ToArray())
+        //    {
+        //        // Сначала смотрим, нет ли коллизии там, где пуля УЖЕ стоит
+        //        var grid = _map.ConvertToTileCoordinates(bullet.Position);
+        //        if (_map.IsWall(grid.X, grid.Y) || CheckBulletCollisions(bullet))
+        //        {
+        //            RemoveEntity(bullet);
+        //            continue; // Пуля уничтожена, не обновляем её
+        //        }
+
+        //        bullet.Update(); // И только если преград нет — двигаем
+        //    }
+        //}
 
         /// <summary>
         /// Выполняет детальную проверку столкновения пули с игроками или врагами.

@@ -43,14 +43,14 @@
             this.stats1 = new System.Windows.Forms.TableLayoutPanel();
             this.P1Score = new System.Windows.Forms.Label();
             this.P1Ammo = new System.Windows.Forms.Label();
-            this.Player2Stats = new System.Windows.Forms.Panel();
-            this.stats2 = new System.Windows.Forms.TableLayoutPanel();
-            this.P2Score = new System.Windows.Forms.Label();
-            this.P2Ammo = new System.Windows.Forms.Label();
             this.pbP1Armor = new LabyrinthGame.CustomProgressBar();
             this.pbP1Health = new LabyrinthGame.CustomProgressBar();
+            this.Player2Stats = new System.Windows.Forms.Panel();
+            this.stats2 = new System.Windows.Forms.TableLayoutPanel();
             this.pbP2Armor = new LabyrinthGame.CustomProgressBar();
             this.pbP2Health = new LabyrinthGame.CustomProgressBar();
+            this.P2Score = new System.Windows.Forms.Label();
+            this.P2Ammo = new System.Windows.Forms.Label();
             this.tableLayoutPanel1.SuspendLayout();
             this.GameContainer.SuspendLayout();
             this.pnlPause.SuspendLayout();
@@ -257,6 +257,30 @@
             this.P1Ammo.Text = "Ammo";
             this.P1Ammo.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
+            // pbP1Armor
+            // 
+            this.pbP1Armor.BarColor = System.Drawing.Color.LightSkyBlue;
+            this.pbP1Armor.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pbP1Armor.Location = new System.Drawing.Point(3, 3);
+            this.pbP1Armor.MaxValue = 50;
+            this.pbP1Armor.Name = "pbP1Armor";
+            this.pbP1Armor.Size = new System.Drawing.Size(124, 12);
+            this.pbP1Armor.TabIndex = 2;
+            this.pbP1Armor.Text = "customProgressBar1";
+            this.pbP1Armor.Value = 0;
+            // 
+            // pbP1Health
+            // 
+            this.pbP1Health.BarColor = System.Drawing.Color.DarkSeaGreen;
+            this.pbP1Health.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pbP1Health.Location = new System.Drawing.Point(3, 21);
+            this.pbP1Health.MaxValue = 100;
+            this.pbP1Health.Name = "pbP1Health";
+            this.pbP1Health.Size = new System.Drawing.Size(124, 26);
+            this.pbP1Health.TabIndex = 3;
+            this.pbP1Health.Text = "customProgressBar1";
+            this.pbP1Health.Value = 0;
+            // 
             // Player2Stats
             // 
             this.Player2Stats.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
@@ -288,6 +312,30 @@
             this.stats2.Size = new System.Drawing.Size(130, 94);
             this.stats2.TabIndex = 3;
             // 
+            // pbP2Armor
+            // 
+            this.pbP2Armor.BarColor = System.Drawing.Color.LightSkyBlue;
+            this.pbP2Armor.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pbP2Armor.Location = new System.Drawing.Point(3, 3);
+            this.pbP2Armor.MaxValue = 50;
+            this.pbP2Armor.Name = "pbP2Armor";
+            this.pbP2Armor.Size = new System.Drawing.Size(124, 12);
+            this.pbP2Armor.TabIndex = 2;
+            this.pbP2Armor.Text = "customProgressBar1";
+            this.pbP2Armor.Value = 0;
+            // 
+            // pbP2Health
+            // 
+            this.pbP2Health.BarColor = System.Drawing.Color.DarkSeaGreen;
+            this.pbP2Health.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pbP2Health.Location = new System.Drawing.Point(3, 21);
+            this.pbP2Health.MaxValue = 100;
+            this.pbP2Health.Name = "pbP2Health";
+            this.pbP2Health.Size = new System.Drawing.Size(124, 26);
+            this.pbP2Health.TabIndex = 3;
+            this.pbP2Health.Text = "customProgressBar1";
+            this.pbP2Health.Value = 0;
+            // 
             // P2Score
             // 
             this.P2Score.AutoSize = true;
@@ -313,54 +361,6 @@
             this.P2Ammo.TabIndex = 5;
             this.P2Ammo.Text = "Ammo";
             this.P2Ammo.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // pbP1Armor
-            // 
-            this.pbP1Armor.BarColor = System.Drawing.Color.LightSkyBlue;
-            this.pbP1Armor.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pbP1Armor.Location = new System.Drawing.Point(3, 3);
-            this.pbP1Armor.MaxValue = 50;
-            this.pbP1Armor.Name = "pbP1Armor";
-            this.pbP1Armor.Size = new System.Drawing.Size(124, 12);
-            this.pbP1Armor.TabIndex = 2;
-            this.pbP1Armor.Text = "customProgressBar1";
-            this.pbP1Armor.Value = 0;
-            // 
-            // pbP1Health
-            // 
-            this.pbP1Health.BarColor = System.Drawing.Color.DarkSeaGreen;
-            this.pbP1Health.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pbP1Health.Location = new System.Drawing.Point(3, 21);
-            this.pbP1Health.MaxValue = 100;
-            this.pbP1Health.Name = "pbP1Health";
-            this.pbP1Health.Size = new System.Drawing.Size(124, 26);
-            this.pbP1Health.TabIndex = 3;
-            this.pbP1Health.Text = "customProgressBar1";
-            this.pbP1Health.Value = 0;
-            // 
-            // pbP2Armor
-            // 
-            this.pbP2Armor.BarColor = System.Drawing.Color.LightSkyBlue;
-            this.pbP2Armor.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pbP2Armor.Location = new System.Drawing.Point(3, 3);
-            this.pbP2Armor.MaxValue = 50;
-            this.pbP2Armor.Name = "pbP2Armor";
-            this.pbP2Armor.Size = new System.Drawing.Size(124, 12);
-            this.pbP2Armor.TabIndex = 2;
-            this.pbP2Armor.Text = "customProgressBar1";
-            this.pbP2Armor.Value = 0;
-            // 
-            // pbP2Health
-            // 
-            this.pbP2Health.BarColor = System.Drawing.Color.DarkSeaGreen;
-            this.pbP2Health.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pbP2Health.Location = new System.Drawing.Point(3, 21);
-            this.pbP2Health.MaxValue = 100;
-            this.pbP2Health.Name = "pbP2Health";
-            this.pbP2Health.Size = new System.Drawing.Size(124, 26);
-            this.pbP2Health.TabIndex = 3;
-            this.pbP2Health.Text = "customProgressBar1";
-            this.pbP2Health.Value = 0;
             // 
             // TestWindow
             // 

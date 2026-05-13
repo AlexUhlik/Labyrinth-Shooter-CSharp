@@ -25,7 +25,6 @@ namespace GameCore.Items
         /// <param name="y">Координата Y.</param>
         public Prize(float x, float y) : base(x, y, 35)
         {
-            // Размер 35 обеспечивает удобный хитбокс для подбора игроком
         }
 
         /// <summary>

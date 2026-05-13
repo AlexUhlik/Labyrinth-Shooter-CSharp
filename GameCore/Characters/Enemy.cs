@@ -21,9 +21,6 @@ namespace GameCore.Characters
         private int _moveTimer = 0;
         private int _shootTimer = 0;
 
-        /// <summary> Текущий тип снаряда врага. </summary>
-        public IBullet CurrentBullet { get; set; }
-
         /// <summary> Цвет для визуализации врага в зависимости от его типа. </summary>
         public Color DisplayColor { get; set; } = Color.White;
 
@@ -57,14 +54,12 @@ namespace GameCore.Characters
         {
             UpdateDamageFlash(deltaTime);
 
-            // Если хотя бы один игрок в зоне видимости — переходим в режим атаки
             if (CanSeeTarget(p1, map) || CanSeeTarget(p2, map))
             {
-                _moveTimer = 0; // Остановка при стрельбе
+                _moveTimer = 0; 
                 return UpdateShooting();
             }
 
-            // Иначе продолжаем патрулирование
             _shootTimer = 0;
             UpdatePatrolling(map);
             return false;
@@ -98,7 +93,6 @@ namespace GameCore.Characters
             var nextPos = new Point(Position.X + dx, Position.Y + dy);
             var grid = map.ConvertToTileCoordinates(nextPos);
 
-            // Проверка коллизии с картой перед перемещением
             if (!map.IsWall(grid.X, grid.Y))
             {
                 SetDirection(dx, dy);

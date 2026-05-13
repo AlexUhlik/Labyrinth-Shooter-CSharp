@@ -47,11 +47,6 @@ namespace GameCore.Characters
         private readonly Point _startPos;
 
         /// <summary>
-        /// Текущий тип снарядов, используемый игроком.
-        /// </summary>
-        public IBullet CurrentBullet { get; set; }
-
-        /// <summary>
         /// Создает новый экземпляр игрока с заданным ID и начальными координатами.
         /// </summary>
         public Player(int id, float x, float y) : base(x, y, DefaultPlayerSize)
@@ -84,7 +79,6 @@ namespace GameCore.Characters
         /// </summary>
         public void ResetShootTimer()
         {
-            // Если надет FastAmmo - уменьшение времени перезарядки.
             _shootTimer = ShootCooldownTime * CurrentBullet.GetCooldown();
         }
 
@@ -100,7 +94,7 @@ namespace GameCore.Characters
             _shootTimer = 0;
 
             Score = Math.Max(MinScore, Score - DeathScorePenalty);
-            CurrentBullet = new StandartBullet(); // Сброс декораторов при смерти
+            CurrentBullet = new StandartBullet(); 
         }
 
         /// <summary>

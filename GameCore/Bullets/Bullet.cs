@@ -45,7 +45,6 @@ namespace GameCore.Bullets
         {
             float speed = Stats.GetSpeed();
 
-            // Вычисляем новую позицию
             Position = new Point(Position.X + DirX * speed, Position.Y + DirY * speed);
         }
 

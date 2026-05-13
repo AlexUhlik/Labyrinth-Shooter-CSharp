@@ -28,6 +28,9 @@ namespace GameCore
         /// <summary> Флаг, указывающий на то, что юнит находится в состоянии "вспышки" от урона. </summary>
         public bool IsDamaged { get; private set; } = false;
 
+        /// <summary> Текущий тип снаряда врага. </summary>
+        public IBullet CurrentBullet { get; set; }
+
         private float _damageFlashTimeLeft = 0f;
         private const float DamageFlashDuration = 0.1f;
 
@@ -67,14 +70,12 @@ namespace GameCore
         /// <param name="attackerId">Идентификатор атакующего.</param>
         public virtual void TakeDamage(int damage, int attackerId)
         {
-            // Сначала урон поглощается броней
             int armorDamage = Math.Min(damage, Armor);
             int healthDamage = damage - armorDamage;
 
             Armor -= armorDamage;
             Health -= healthDamage;
 
-            // Запуск визуального эффекта получения урона
             StartDamageFlash();
 
             if (Health <= 0)

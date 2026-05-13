@@ -32,7 +32,8 @@ namespace Application.Services
                 case 3:
                     return new FastPrize(x, y);
                 default:
-                    return new HealthPrize(x, y);
+                    //return new HealthPrize(x, y);
+                    throw new ArgumentException($"Неизвестный тип приза: {prizeType}", nameof(prizeType));
             }
         }
 
