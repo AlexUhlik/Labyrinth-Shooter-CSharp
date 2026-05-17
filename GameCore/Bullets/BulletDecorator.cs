@@ -45,7 +45,6 @@ namespace GameCore.Bullets
         {
             TimeLeft -= deltaTime;
 
-            // Если внутри находится еще один декоратор, ешо время также обновляется
             if (_bullet is BulletDecorator innerDecorator)
             {
                 innerDecorator.UpdateTime(deltaTime);

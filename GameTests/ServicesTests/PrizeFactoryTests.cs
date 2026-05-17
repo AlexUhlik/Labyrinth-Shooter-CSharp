@@ -1,5 +1,5 @@
 ﻿using Xunit;
-using Application.Services;
+using Application.Services.PrizeFactory;
 using GameCore.Items;
 using GameCore.Map;
 using System;
@@ -8,47 +8,118 @@ using System.Collections.Generic;
 namespace GameTests.ServicesTests
 {
     /// <summary>
-    /// Тестирование фабрики призов (PrizeFactory).
-    /// Проверяет создание конкретных типов бонусов и логику их симметричного размещения на карте.
+    /// Тестирование фабричного метода для призов (PrizeSpawner).
+    /// Проверяет создание конкретных типов бонусов через конкретные фабрики
+    /// и логику их симметричного размещения на карте.
     /// </summary>
     public class PrizeFactoryTests
     {
         /// <summary>
-        /// Проверяет, что фабрика создает правильный подтип Prize на основе переданного индекса.
+        /// Проверяет, что каждая конкретная фабрика создаёт правильный подтип Prize.
         /// </summary>
-        /// <param name="typeIndex">Индекс типа бонуса.</param>
-        /// <param name="expectedType">Ожидаемый класс реализации.</param>
-        [Theory]
-        [InlineData(0, typeof(HealthPrize))]
-        [InlineData(1, typeof(AmmunitionPrize))]
-        [InlineData(2, typeof(ExplosivePrize))]
-        [InlineData(3, typeof(FastPrize))]
-        public void CreatePrize_IndexInput_ReturnsCorrectSubclass(int typeIndex, Type expectedType)
+        [Fact]
+        public void HealthPrizeSpawner_CreatePrize_ReturnsHealthPrize()
         {
-            // Arrange & Act
-            var prize = PrizeFactory.CreatePrize(typeIndex, 0, 0);
+            // Arrange
+            var spawner = new HealthPrizeSpawner();
+
+            // Act
+            var prize = spawner.CreatePrize(0, 0);
 
             // Assert
-            Assert.IsType(expectedType, prize);
+            Assert.IsType<HealthPrize>(prize);
+        }
+
+        [Fact]
+        public void AmmunitionPrizeSpawner_CreatePrize_ReturnsAmmunitionPrize()
+        {
+            // Arrange
+            var spawner = new AmmunitionPrizeSpawner();
+
+            // Act
+            var prize = spawner.CreatePrize(0, 0);
+
+            // Assert
+            Assert.IsType<AmmunitionPrize>(prize);
+        }
+
+        [Fact]
+        public void ExplosivePrizeSpawner_CreatePrize_ReturnsExplosivePrize()
+        {
+            // Arrange
+            var spawner = new ExplosivePrizeSpawner();
+
+            // Act
+            var prize = spawner.CreatePrize(0, 0);
+
+            // Assert
+            Assert.IsType<ExplosivePrize>(prize);
+        }
+
+        [Fact]
+        public void FastPrizeSpawner_CreatePrize_ReturnsFastPrize()
+        {
+            // Arrange
+            var spawner = new FastPrizeSpawner();
+
+            // Act
+            var prize = spawner.CreatePrize(0, 0);
+
+            // Assert
+            Assert.IsType<FastPrize>(prize);
         }
 
         /// <summary>
-        /// Проверяет механизм генерации пары бонусов. 
-        /// Бонусы должны быть идентичного типа и располагаться симметрично относительно центра карты.
+        /// Проверяет, что шаблонный метод SpawnPair создаёт пару бонусов одного типа.
+        /// Бонусы должны располагаться симметрично относительно центра карты.
         /// </summary>
         [Fact]
-        public void SpawnRandomPair_StandardMap_ReturnsTwoSymmetricPrizesOfSameType()
+        public void SpawnPair_WithHealthSpawner_ReturnsTwoSymmetricHealthPrizes()
         {
             // Arrange
             int mapSize = 11;
-            var map = new LabyrinthMap(new TileType[mapSize, mapSize]);
-            int forcedType = 1; // AmmunitionPrize
-            float tileSize = 50f; 
+            var grid = new TileType[mapSize, mapSize];
+            for (int i = 0; i < mapSize; i++)
+                for (int j = 0; j < mapSize; j++)
+                    grid[i, j] = TileType.Empty; // Все клетки свободны для теста
+
+            var map = new LabyrinthMap(grid);
+            var spawner = new HealthPrizeSpawner();
+            float tileSize = 50f;
             float worldWidth = mapSize * tileSize;
             float worldHeight = mapSize * tileSize;
 
             // Act
-            var prizes = PrizeFactory.SpawnRandomPair(map, forceType: forcedType);
+            var prizes = spawner.SpawnPair(map);
+
+            // Assert
+            Assert.Equal(2, prizes.Count);
+            Assert.IsType<HealthPrize>(prizes[0]);
+            Assert.IsType<HealthPrize>(prizes[1]);
+
+            // Проверка симметричности
+            Assert.Equal(worldWidth, prizes[0].Position.X + prizes[1].Position.X, precision: 1);
+            Assert.Equal(worldHeight, prizes[0].Position.Y + prizes[1].Position.Y, precision: 1);
+        }
+
+        [Fact]
+        public void SpawnPair_WithAmmunitionSpawner_ReturnsTwoSymmetricAmmunitionPrizes()
+        {
+            // Arrange
+            int mapSize = 11;
+            var grid = new TileType[mapSize, mapSize];
+            for (int i = 0; i < mapSize; i++)
+                for (int j = 0; j < mapSize; j++)
+                    grid[i, j] = TileType.Empty;
+
+            var map = new LabyrinthMap(grid);
+            var spawner = new AmmunitionPrizeSpawner();
+            float tileSize = 50f;
+            float worldWidth = mapSize * tileSize;
+            float worldHeight = mapSize * tileSize;
+
+            // Act
+            var prizes = spawner.SpawnPair(map);
 
             // Assert
             Assert.Equal(2, prizes.Count);
@@ -60,16 +131,25 @@ namespace GameTests.ServicesTests
         }
 
         /// <summary>
-        /// Проверяет, что при передаче некорректного индекса типа фабрика выбрасывает исключение.
+        /// Проверяет, что разные фабрики создают призы разных типов.
         /// </summary>
         [Fact]
-        public void CreatePrize_InvalidIndex_ThrowsArgumentException()
+        public void DifferentSpawners_CreateDifferentPrizeTypes()
         {
             // Arrange
-            int invalidType = 999;
+            PrizeSpawner[] spawners = new PrizeSpawner[]
+            {
+                new HealthPrizeSpawner(),
+                new AmmunitionPrizeSpawner(),
+                new ExplosivePrizeSpawner(),
+                new FastPrizeSpawner()
+            };
 
             // Act & Assert
-            Assert.Throws<ArgumentException>(() => PrizeFactory.CreatePrize(invalidType, 0, 0));
+            Assert.IsType<HealthPrize>(spawners[0].CreatePrize(0, 0));
+            Assert.IsType<AmmunitionPrize>(spawners[1].CreatePrize(0, 0));
+            Assert.IsType<ExplosivePrize>(spawners[2].CreatePrize(0, 0));
+            Assert.IsType<FastPrize>(spawners[3].CreatePrize(0, 0));
         }
     }
 }

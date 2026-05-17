@@ -1,4 +1,5 @@
 ﻿using Application.Services;
+using Application.Services.PrizeFactory;
 using GameCore;
 using GameCore.Bullets;
 using GameCore.Characters;
@@ -30,7 +31,17 @@ namespace Application.Game
 
         private readonly LabyrinthMap _map;
         private readonly List<Player> _allPlayers;
+        static readonly Random _rnd = new Random();
         private EnemyFactory _currentEnemyFactory;
+
+        private List<PrizeSpawner> PrizeFactories { get; } = new List<PrizeSpawner> 
+        {
+            new HealthPrizeSpawner(),
+            new AmmunitionPrizeSpawner(), 
+            new ExplosivePrizeSpawner(), 
+            new FastPrizeSpawner(), 
+
+        }; 
 
         private float _sessionTime;
         private float _prizeSpawnTimer;
@@ -199,12 +210,31 @@ namespace Application.Game
             }
         }
 
+        private PrizeSpawner SelectRandomPrizeSpawner()
+        {
+            int _lastPrizeType = -1;
+
+            int[] pool = { 0, 1, 1, 1, 2, 3 };
+            int type;
+
+            do
+            {
+                type = pool[_rnd.Next(pool.Length)];
+            } while (type == _lastPrizeType && type != 1); 
+
+            _lastPrizeType = type;
+
+            return PrizeFactories[type];
+        }
+
         /// <summary>
         /// Генерирует пару случайных призов на карте.
         /// </summary>
         private void SpawnPrizePair()
         {
-            var pair = PrizeFactory.SpawnRandomPair(_map);
+            //var pair = PrizeSpawner.SpawnRandomPair(_map);
+            var fabric = SelectRandomPrizeSpawner();
+            var pair = fabric.SpawnPair(_map);
             foreach (var prize in pair)
             {
                 AddEntity(prize);

@@ -9,7 +9,7 @@ namespace Application.Services
     /// Статический класс-фабрика для создания и случайного размещения призов на карте.
     /// Централизует логику выбора типа бонуса и его координат.
     /// </summary>
-    public static class PrizeFactory
+    public static class PrizeFactory1
     {
         private static readonly Random rnd = new Random();
 
